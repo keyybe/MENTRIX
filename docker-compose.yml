@@ -1,0 +1,37 @@
+# Локальный запуск сервера вместе с PostgreSQL: docker compose up --build
+# Секреты кладутся в файл .env рядом (он в .gitignore), пример – в .env.example
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: mentor
+      POSTGRES_USER: mentor
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mentor-local}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mentor -d mentor"]
+      interval: 5s
+      retries: 10
+
+  server:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/mentor
+      DATABASE_USER: mentor
+      DATABASE_PASSWORD: ${DB_PASSWORD:-mentor-local}
+      JWT_SECRET: ${JWT_SECRET:?задай JWT_SECRET в .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      AUTH_DEV: ${AUTH_DEV:-false}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+
+volumes:
+  db-data:

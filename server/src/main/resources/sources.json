@@ -1,0 +1,238 @@
+[
+  {
+    "id": "fe-html", "title": "HTML: структура страницы", "area": "FRONTEND", "basic": true, "minutes": 15,
+    "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content",
+    "tasks": [
+      { "title": "Что такое тег", "prompt": "Что такое тег в HTML? Приведи один пример.", "keywords": ["тег", "<p>|<h1>|<div>|<a>|<img|<br|<html|<body|<head"] },
+      { "title": "head и body", "prompt": "Что пишут в head, а что в body?", "keywords": ["head", "body"] },
+      { "title": "Ссылка", "prompt": "Какой тег делает ссылку?", "keywords": ["<a|тег a| a ", "href"] },
+      { "title": "Картинка", "prompt": "Зачем картинке атрибут alt?", "keywords": ["alt", "текст|описан"] },
+      { "title": "Заголовок", "prompt": "Напиши заголовок первого уровня с текстом «Привет».", "keywords": ["<h1>", "привет", "</h1>"], "code": true },
+      { "title": "Списки", "prompt": "Чем ul отличается от ol?", "keywords": ["ul", "ol", "нумер|порядк"] },
+      { "title": "Кнопка", "prompt": "Напиши кнопку с текстом «Войти».", "keywords": ["<button", "войти", "</button>"], "code": true }
+    ]
+  },
+  {
+    "id": "fe-css", "title": "CSS: оформление", "area": "FRONTEND", "basic": true, "minutes": 15,
+    "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics",
+    "tasks": [
+      { "title": "Зачем CSS", "prompt": "Для чего нужен CSS?", "keywords": ["оформлен|стил|внешн|вид|цвет"] },
+      { "title": "Класс", "prompt": "Как в CSS выбрать элемент по классу?", "keywords": ["точк|.", "класс"] },
+      { "title": "Красный текст", "prompt": "Напиши CSS: текст абзаца p красного цвета.", "keywords": ["p", "color", "red|#f00|#ff0000"], "code": true },
+      { "title": "margin и padding", "prompt": "Чем margin отличается от padding?", "keywords": ["margin|внешн", "padding|внутрен"] },
+      { "title": "Flexbox", "prompt": "Как поставить элементы в ряд с помощью CSS?", "keywords": ["flex"] },
+      { "title": "Центр", "prompt": "Какое свойство flex выравнивает элементы по центру по горизонтали?", "keywords": ["justify-content", "center"] },
+      { "title": "Наведение", "prompt": "Напиши CSS: кнопка .btn становится синей при наведении.", "keywords": [".btn", ":hover", "blue|синий|#00f|background"], "code": true }
+    ]
+  },
+  {
+    "id": "fe-js", "title": "JavaScript: основы", "area": "FRONTEND", "basic": true, "minutes": 15,
+    "url": "https://learn.javascript.ru/first-steps",
+    "tasks": [
+      { "title": "let и const", "prompt": "Чем let отличается от const?", "keywords": ["const", "let", "нельзя|изменить|поменять|переприсво"] },
+      { "title": "Переменная", "prompt": "Напиши переменную name со значением \"Аня\".", "keywords": ["let|const", "name", "аня"], "code": true },
+      { "title": "Функция", "prompt": "Зачем в функции нужен return?", "keywords": ["return|возвра", "результат|значени"] },
+      { "title": "Сравнение", "prompt": "Чем == отличается от ===?", "keywords": ["===", "тип"] },
+      { "title": "Сумма", "prompt": "Напиши функцию sum(a, b), которая возвращает a + b.", "keywords": ["function|=>", "return", "a + b|a+b"], "code": true },
+      { "title": "Массив", "prompt": "Как узнать длину массива?", "keywords": ["length"] },
+      { "title": "Цикл", "prompt": "Для чего нужен цикл for?", "keywords": ["повтор|несколько раз|много раз"] }
+    ]
+  },
+  {
+    "id": "fe-dom", "title": "Работа с DOM", "area": "FRONTEND", "basic": false, "minutes": 15,
+    "url": "https://learn.javascript.ru/document",
+    "tasks": [
+      { "title": "Что такое DOM", "prompt": "Что такое DOM простыми словами?", "keywords": ["дерев|структур|модель", "страниц|документ|элемент"] },
+      { "title": "Найти элемент", "prompt": "Каким методом найти элемент по CSS-селектору?", "keywords": ["queryselector"] },
+      { "title": "Клик", "prompt": "Каким методом повесить обработчик клика?", "keywords": ["addeventlistener", "click"] },
+      { "title": "Текст", "prompt": "Напиши код: поменять текст элемента #title на «Готово».", "keywords": ["#title|title", "textcontent|innertext|innerhtml", "готово"], "code": true },
+      { "title": "Новый элемент", "prompt": "Каким методом создать новый элемент?", "keywords": ["createelement"] },
+      { "title": "Класс", "prompt": "Как добавить элементу класс active?", "keywords": ["classlist", "add", "active"] },
+      { "title": "Счётчик", "prompt": "Напиши код: по клику на #btn вывести в консоль «клик».", "keywords": ["addeventlistener", "click", "console.log"], "code": true }
+    ]
+  },
+  {
+    "id": "fe-react", "title": "React: компоненты", "area": "FRONTEND", "basic": false, "minutes": 15,
+    "url": "https://react.dev/learn",
+    "tasks": [
+      { "title": "Компонент", "prompt": "Что такое компонент в React?", "keywords": ["функци|часть|кусок|блок", "интерфейс|ui|экран|страниц"] },
+      { "title": "props", "prompt": "Зачем нужны props?", "keywords": ["передат|передава", "данн|значени"] },
+      { "title": "useState", "prompt": "Для чего нужен useState?", "keywords": ["состоян|state", "хранит|меня|обновл"] },
+      { "title": "Приветствие", "prompt": "Напиши компонент Hello, который выводит <h1>Привет</h1>.", "keywords": ["function hello|const hello", "return", "<h1>"], "code": true },
+      { "title": "key", "prompt": "Зачем элементам списка нужен key?", "keywords": ["key", "уникальн|отлича|различ"] },
+      { "title": "Кнопка", "prompt": "Как обработать клик по кнопке в React?", "keywords": ["onclick"] },
+      { "title": "Счётчик", "prompt": "Напиши строку, которая создаёт состояние count со значением 0.", "keywords": ["usestate(0)", "count", "setcount"], "code": true }
+    ]
+  },
+  {
+    "id": "fe-fetch", "title": "Запросы к API: fetch", "area": "FRONTEND", "basic": false, "minutes": 15,
+    "url": "https://learn.javascript.ru/fetch",
+    "tasks": [
+      { "title": "fetch", "prompt": "Для чего нужна функция fetch?", "keywords": ["запрос|загруз|получ", "сервер|данн"] },
+      { "title": "JSON", "prompt": "Как превратить ответ fetch в объект?", "keywords": ["json()"] },
+      { "title": "await", "prompt": "Что делает слово await?", "keywords": ["жд|дожида|ожида"] },
+      { "title": "Запрос", "prompt": "Напиши строку: получить ответ с адреса /api/users с помощью fetch и await.", "keywords": ["await", "fetch", "/api/users"], "code": true },
+      { "title": "Ошибки", "prompt": "Как поймать ошибку запроса?", "keywords": ["try", "catch"] },
+      { "title": "response.ok", "prompt": "Что означает response.ok?", "keywords": ["успеш|200|без ошиб|нормально"] },
+      { "title": "Загрузка", "prompt": "Что показать пользователю, пока данные грузятся?", "keywords": ["загрузк|спиннер|индикатор|крутил|loading"] }
+    ]
+  },
+
+  {
+    "id": "be-http", "title": "HTTP и REST", "area": "BACKEND", "basic": true, "minutes": 15,
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview",
+    "tasks": [
+      { "title": "Что такое HTTP", "prompt": "Что такое HTTP простыми словами?", "keywords": ["протокол|правил|способ", "браузер|клиент", "сервер"] },
+      { "title": "GET и POST", "prompt": "Чем GET отличается от POST?", "keywords": ["get", "post", "получ|отправ|созда"] },
+      { "title": "Код 404", "prompt": "Что означает код ответа 404?", "keywords": ["не найден|нет такой|не существ"] },
+      { "title": "Код 500", "prompt": "Что означает код 500?", "keywords": ["ошибк", "сервер"] },
+      { "title": "Код 200", "prompt": "Что означает код 200?", "keywords": ["успеш|всё хорошо|все хорошо|ок|ok"] },
+      { "title": "Удаление", "prompt": "Каким методом HTTP удаляют данные?", "keywords": ["delete"] },
+      { "title": "Адрес", "prompt": "Напиши адрес и метод для получения списка задач в REST API.", "keywords": ["get", "/tasks"], "code": true }
+    ]
+  },
+  {
+    "id": "be-kotlin", "title": "Kotlin: основы для бэкенда", "area": "BACKEND", "basic": true, "minutes": 15,
+    "url": "https://kotlinlang.org/docs/basic-syntax.html",
+    "tasks": [
+      { "title": "val и var", "prompt": "Чем val отличается от var?", "keywords": ["val", "var", "нельзя|изменить|поменять|переприсво"] },
+      { "title": "Переменная", "prompt": "Напиши неизменяемую переменную age со значением 18.", "keywords": ["val", "age", "18"], "code": true },
+      { "title": "Функция", "prompt": "Каким словом объявляют функцию в Kotlin?", "keywords": ["fun"] },
+      { "title": "null", "prompt": "Что означает знак ? после типа, например String?", "keywords": ["null"] },
+      { "title": "Список", "prompt": "Напиши список из чисел 1, 2, 3.", "keywords": ["listof", "1", "3"], "code": true },
+      { "title": "data class", "prompt": "Для чего нужен data class?", "keywords": ["данн|хранени|хранит"] },
+      { "title": "if", "prompt": "Что делает конструкция if?", "keywords": ["услови|если"] }
+    ]
+  },
+  {
+    "id": "be-ktor", "title": "Ktor: первый сервер", "area": "BACKEND", "basic": true, "minutes": 15,
+    "url": "https://ktor.io/docs/server-create-a-new-project.html",
+    "tasks": [
+      { "title": "Что такое Ktor", "prompt": "Что такое Ktor?", "keywords": ["фреймворк|библиотек|инструмент", "сервер"] },
+      { "title": "Маршрут", "prompt": "Что такое маршрут (route) на сервере?", "keywords": ["адрес|путь|url", "обработ|ответ|запрос"] },
+      { "title": "Ответ", "prompt": "Каким методом Ktor отправляет ответ клиенту?", "keywords": ["respond"] },
+      { "title": "Hello", "prompt": "Напиши маршрут GET \"/\", который отвечает текстом \"Привет\".", "keywords": ["get(\"/\")|get(\"/\"", "respondtext|respond", "привет"], "code": true },
+      { "title": "JSON", "prompt": "Какой плагин Ktor нужен для работы с JSON?", "keywords": ["contentnegotiation"] },
+      { "title": "Тело запроса", "prompt": "Каким методом прочитать тело запроса?", "keywords": ["receive"] },
+      { "title": "Порт", "prompt": "Что такое порт сервера, например 8080?", "keywords": ["номер|адрес|вход|канал", "8080|сервер|приложени"] }
+    ]
+  },
+  {
+    "id": "be-sql", "title": "SQL и PostgreSQL", "area": "BACKEND", "basic": false, "minutes": 15,
+    "url": "https://www.postgresql.org/docs/current/tutorial.html",
+    "tasks": [
+      { "title": "Таблица", "prompt": "Что такое таблица в базе данных?", "keywords": ["строк|запис", "столб|колон|пол"] },
+      { "title": "SELECT", "prompt": "Напиши запрос, который выбирает все строки из таблицы users.", "keywords": ["select", "*|все", "from users"], "code": true },
+      { "title": "WHERE", "prompt": "Для чего нужен WHERE?", "keywords": ["услови|фильтр|отбор|только"] },
+      { "title": "Первичный ключ", "prompt": "Что такое первичный ключ?", "keywords": ["уникальн", "строк|запис|id"] },
+      { "title": "Добавить", "prompt": "Какой командой добавляют новую строку в таблицу?", "keywords": ["insert"] },
+      { "title": "Фильтр", "prompt": "Напиши запрос: пользователи из users старше 18 лет (поле age).", "keywords": ["select", "from users", "where", "age > 18|age>18"], "code": true },
+      { "title": "JOIN", "prompt": "Для чего нужен JOIN?", "keywords": ["объедин|соедин|связ", "таблиц"] }
+    ]
+  },
+  {
+    "id": "be-auth", "title": "Аутентификация", "area": "BACKEND", "basic": false, "minutes": 15,
+    "url": "https://jwt.io/introduction",
+    "tasks": [
+      { "title": "Вход", "prompt": "Что такое аутентификация?", "keywords": ["провер|подтвер", "кто|личност|пользовател"] },
+      { "title": "Права", "prompt": "Что такое авторизация?", "keywords": ["прав|доступ|разреш"] },
+      { "title": "Токен", "prompt": "Что такое токен простыми словами?", "keywords": ["пропуск|ключ|строк|билет|доказательств"] },
+      { "title": "Пароли", "prompt": "Почему пароли нельзя хранить открытым текстом?", "keywords": ["хеш|hash|хэш|утечк|украд|взлом"] },
+      { "title": "Заголовок", "prompt": "Напиши заголовок, в котором клиент передаёт токен abc.", "keywords": ["authorization", "bearer", "abc"], "code": true },
+      { "title": "Срок токена", "prompt": "Зачем токену срок действия?", "keywords": ["украд|утечк|безопас|истек|перестан"] },
+      { "title": "Секреты", "prompt": "Где хранить секретные ключи вместо кода?", "keywords": ["переменн|окружен|env"] }
+    ]
+  },
+  {
+    "id": "be-tests", "title": "Тестирование API", "area": "BACKEND", "basic": false, "minutes": 15,
+    "url": "https://ktor.io/docs/server-testing.html",
+    "tasks": [
+      { "title": "Зачем тесты", "prompt": "Зачем писать тесты?", "keywords": ["ошибк|баг|провер|сломал"] },
+      { "title": "Юнит-тест", "prompt": "Что проверяет юнит-тест?", "keywords": ["маленьк|одн|часть|функци|модул"] },
+      { "title": "assert", "prompt": "Что делает assertEquals?", "keywords": ["сравн|равн|совпада"] },
+      { "title": "Проверка", "prompt": "Напиши строку: проверить, что 2 + 2 равно 4, через assertEquals.", "keywords": ["assertequals", "4", "2 + 2|2+2"], "code": true },
+      { "title": "testApplication", "prompt": "Для чего в Ktor нужен testApplication?", "keywords": ["тест|провер", "без|не запуска|настоящ|сервер"] },
+      { "title": "Что проверить", "prompt": "Назови два случая, которые стоит проверить у входа по паролю.", "keywords": ["верн|правильн|успеш", "неверн|неправильн|ошиб"] },
+      { "title": "Статус", "prompt": "Напиши проверку, что статус ответа равен 200.", "keywords": ["assertequals", "200|httpstatuscode.ok", "status"], "code": true }
+    ]
+  },
+
+  {
+    "id": "mo-kotlin", "title": "Kotlin: основы", "area": "MOBILE", "basic": true, "minutes": 15,
+    "url": "https://kotlinlang.org/docs/getting-started.html",
+    "tasks": [
+      { "title": "val и var", "prompt": "Чем val отличается от var?", "keywords": ["val", "var", "нельзя|изменить|поменять|переприсво"] },
+      { "title": "Null-безопасность", "prompt": "Что означает знак ? в типе String?", "keywords": ["null"] },
+      { "title": "Переменная", "prompt": "Напиши переменную name со значением \"Аня\".", "keywords": ["val|var", "name", "аня"], "code": true },
+      { "title": "Функция", "prompt": "Каким словом объявляют функцию?", "keywords": ["fun"] },
+      { "title": "Удвоение", "prompt": "Напиши функцию double(x: Int), которая возвращает x * 2.", "keywords": ["fun double", "x * 2|x*2|2 * x|2*x"], "code": true },
+      { "title": "Список", "prompt": "Что делает функция filter у списка?", "keywords": ["отбира|фильтр|оставля|выбира", "услови"] },
+      { "title": "Строки", "prompt": "Как вставить переменную в строку в Kotlin?", "keywords": ["$|шаблон"] }
+    ]
+  },
+  {
+    "id": "mo-studio", "title": "Android Studio и структура проекта", "area": "MOBILE", "basic": true, "minutes": 15,
+    "url": "https://developer.android.com/studio/intro",
+    "tasks": [
+      { "title": "Android Studio", "prompt": "Что такое Android Studio?", "keywords": ["программ|среда|ide|инструмент", "разработ|приложени"] },
+      { "title": "Эмулятор", "prompt": "Зачем нужен эмулятор?", "keywords": ["телефон|устройств", "запуск|провер|тест"] },
+      { "title": "Манифест", "prompt": "Что описывают в AndroidManifest.xml?", "keywords": ["разрешени|activity|экран|компонент|приложени"] },
+      { "title": "Gradle", "prompt": "Что делает Gradle?", "keywords": ["сборк|собира|build", "библиотек|зависимост"] },
+      { "title": "Библиотека", "prompt": "В каком блоке build.gradle подключают библиотеки?", "keywords": ["dependencies"], "code": true },
+      { "title": "Logcat", "prompt": "Для чего нужен Logcat?", "keywords": ["лог|сообщени|ошибк"] },
+      { "title": "Разрешение", "prompt": "Напиши строку манифеста, которая разрешает доступ в интернет.", "keywords": ["uses-permission", "internet"], "code": true }
+    ]
+  },
+  {
+    "id": "mo-compose", "title": "Jetpack Compose: основы", "area": "MOBILE", "basic": true, "minutes": 15,
+    "url": "https://developer.android.com/develop/ui/compose/tutorial",
+    "tasks": [
+      { "title": "Composable", "prompt": "Что такое Composable-функция?", "keywords": ["функци", "интерфейс|ui|экран|рису|элемент"] },
+      { "title": "Текст", "prompt": "Напиши Compose-код, который показывает текст «Привет».", "keywords": ["text(", "привет"], "code": true },
+      { "title": "Column и Row", "prompt": "Чем Column отличается от Row?", "keywords": ["вертикал|столб|сверху вниз|друг под", "горизонт|ряд|строк|друг за|рядом"] },
+      { "title": "Modifier", "prompt": "Для чего нужен Modifier?", "keywords": ["размер|отступ|внешн|вид|настро|оформ"] },
+      { "title": "Отступ", "prompt": "Напиши Modifier с отступом 16.dp.", "keywords": ["modifier", "padding", "16.dp"], "code": true },
+      { "title": "Списки", "prompt": "Что использовать для длинного прокручиваемого списка?", "keywords": ["lazycolumn"] },
+      { "title": "Кнопка", "prompt": "Какой Composable рисует кнопку?", "keywords": ["button"] }
+    ]
+  },
+  {
+    "id": "mo-state", "title": "Состояние в Compose", "area": "MOBILE", "basic": false, "minutes": 15,
+    "url": "https://developer.android.com/develop/ui/compose/state",
+    "tasks": [
+      { "title": "Состояние", "prompt": "Что такое состояние (state) экрана?", "keywords": ["данн|значени", "меня|изменя|показ"] },
+      { "title": "remember", "prompt": "Зачем нужен remember?", "keywords": ["запомин|сохран|помнит", "перерис|перекомпоз|recompos"] },
+      { "title": "Счётчик", "prompt": "Напиши строку: состояние count со значением 0 через remember.", "keywords": ["remember", "mutablestateof(0)|mutableintstateof(0)", "count"], "code": true },
+      { "title": "Поворот", "prompt": "Чем rememberSaveable лучше remember при повороте экрана?", "keywords": ["поворот|пересоздан|сохран"] },
+      { "title": "Перекомпозиция", "prompt": "Что происходит, когда состояние меняется?", "keywords": ["перерис|перекомпоз|обновл|recompos"] },
+      { "title": "Поднятие", "prompt": "Что значит «поднять состояние» (state hoisting)?", "keywords": ["родител|выше|наверх", "передат|параметр"] },
+      { "title": "Переключатель", "prompt": "Напиши Switch, который показывает checked и меняет его при нажатии.", "keywords": ["switch", "checked", "oncheckedchange"], "code": true }
+    ]
+  },
+  {
+    "id": "mo-vm", "title": "ViewModel", "area": "MOBILE", "basic": false, "minutes": 15,
+    "url": "https://developer.android.com/topic/libraries/architecture/viewmodel",
+    "tasks": [
+      { "title": "Зачем ViewModel", "prompt": "Зачем нужна ViewModel?", "keywords": ["хран|данн|логик", "поворот|экран|переживает"] },
+      { "title": "Поворот", "prompt": "Что происходит с данными ViewModel при повороте экрана?", "keywords": ["сохраня|остают|не теря|живут"] },
+      { "title": "StateFlow", "prompt": "Для чего ViewModel использует StateFlow?", "keywords": ["состоян|данн", "экран|ui|наблюд|подпис"] },
+      { "title": "Класс", "prompt": "Напиши пустой класс MainViewModel, который наследует ViewModel.", "keywords": ["class mainviewmodel", ": viewmodel()|:viewmodel()"], "code": true },
+      { "title": "viewModelScope", "prompt": "Что такое viewModelScope?", "keywords": ["корутин|coroutine", "отмен|закры|живёт|живет"] },
+      { "title": "Запуск", "prompt": "Напиши строку, которая запускает корутину во ViewModel.", "keywords": ["viewmodelscope.launch"], "code": true },
+      { "title": "Логика", "prompt": "Почему логику лучше держать во ViewModel, а не в экране?", "keywords": ["тест|отдел|раздел|поворот|чище|проще"] }
+    ]
+  },
+  {
+    "id": "mo-data", "title": "Сеть и данные", "area": "MOBILE", "basic": false, "minutes": 15,
+    "url": "https://developer.android.com/training/data-storage/room",
+    "tasks": [
+      { "title": "Room", "prompt": "Что такое Room?", "keywords": ["баз|database|sqlite", "данн|хран"] },
+      { "title": "Главный поток", "prompt": "Почему сеть нельзя вызывать в главном потоке?", "keywords": ["завис|тормоз|блокир|подвис|anr"] },
+      { "title": "DAO", "prompt": "Что такое DAO в Room?", "keywords": ["запрос|метод|доступ", "баз|данн"] },
+      { "title": "Сущность", "prompt": "Напиши аннотацию, которой помечают класс-таблицу в Room.", "keywords": ["@entity"], "code": true },
+      { "title": "Офлайн", "prompt": "Как показать данные без интернета?", "keywords": ["сохран|кэш|cache|баз|локальн"] },
+      { "title": "JSON", "prompt": "Что такое JSON?", "keywords": ["формат|текст", "данн"] },
+      { "title": "Запрос", "prompt": "Напиши аннотацию Room-запроса, который выбирает все заметки из таблицы notes.", "keywords": ["@query", "select", "from notes"], "code": true }
+    ]
+  }
+]
