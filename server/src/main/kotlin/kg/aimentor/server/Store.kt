@@ -40,10 +40,17 @@ enum class EventType { PROFILE, ANSWER_PASS, ANSWER_FAIL, CHAT, OPEN }
 interface UserStore {
     fun load(userId: String): UserState?
     fun save(userId: String, state: UserState)
-    fun delete(userId: String)
+    fun delete(userId: String) // удаляет и состояние, и события, и аккаунт с паролем
     fun event(userId: String, type: EventType, day: LocalDate)
     fun stats(today: LocalDate): StatsDto
+
+    // Аккаунты с входом по email. false – такой email уже зарегистрирован.
+    fun createAccount(account: Account): Boolean
+    fun findAccount(email: String): Account?
 }
+
+// email хранится в нижнем регистре, пароль – только в виде хеша (см. Passwords)
+data class Account(val userId: String, val email: String, val passwordHash: String, val name: String)
 
 internal val storeJson = Json { ignoreUnknownKeys = true }
 
@@ -51,6 +58,7 @@ internal val storeJson = Json { ignoreUnknownKeys = true }
 class InMemoryUserStore : UserStore {
     private val users = ConcurrentHashMap<String, String>()
     private val events = java.util.Collections.synchronizedList(mutableListOf<Triple<String, EventType, LocalDate>>())
+    private val accounts = ConcurrentHashMap<String, Account>() // ключ – email
 
     override fun load(userId: String) = users[userId]?.let { storeJson.decodeFromString<UserState>(it) }
     override fun save(userId: String, state: UserState) {
@@ -60,7 +68,11 @@ class InMemoryUserStore : UserStore {
     override fun delete(userId: String) {
         users.remove(userId)
         events.removeIf { it.first == userId }
+        accounts.values.removeIf { it.userId == userId }
     }
+
+    override fun createAccount(account: Account) = accounts.putIfAbsent(account.email, account) == null
+    override fun findAccount(email: String) = accounts[email]
 
     override fun event(userId: String, type: EventType, day: LocalDate) {
         events.add(Triple(userId, type, day))
@@ -107,6 +119,17 @@ class PostgresUserStore(private val ds: HikariDataSource) : UserStore, AutoClose
                     )
                     """.trimIndent()
                 )
+                st.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS accounts (
+                        user_id TEXT PRIMARY KEY,
+                        email TEXT NOT NULL UNIQUE,
+                        password_hash TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                    )
+                    """.trimIndent()
+                )
                 st.execute("CREATE INDEX IF NOT EXISTS events_day ON events(day)")
                 st.execute("CREATE INDEX IF NOT EXISTS events_user ON events(user_id)")
             }
@@ -140,12 +163,34 @@ class PostgresUserStore(private val ds: HikariDataSource) : UserStore, AutoClose
             try {
                 c.prepareStatement("DELETE FROM users WHERE id = ?").use { it.setString(1, userId); it.executeUpdate() }
                 c.prepareStatement("DELETE FROM events WHERE user_id = ?").use { it.setString(1, userId); it.executeUpdate() }
+                c.prepareStatement("DELETE FROM accounts WHERE user_id = ?").use { it.setString(1, userId); it.executeUpdate() }
                 c.commit()
             } catch (e: Exception) {
                 c.rollback()
                 throw e
             } finally {
                 c.autoCommit = true
+            }
+        }
+    }
+
+    override fun createAccount(account: Account): Boolean = ds.connection.use { c ->
+        c.prepareStatement(
+            "INSERT INTO accounts(user_id, email, password_hash, name) VALUES (?, ?, ?, ?) ON CONFLICT (email) DO NOTHING"
+        ).use { ps ->
+            ps.setString(1, account.userId)
+            ps.setString(2, account.email)
+            ps.setString(3, account.passwordHash)
+            ps.setString(4, account.name)
+            ps.executeUpdate() == 1
+        }
+    }
+
+    override fun findAccount(email: String): Account? = ds.connection.use { c ->
+        c.prepareStatement("SELECT user_id, email, password_hash, name FROM accounts WHERE email = ?").use { ps ->
+            ps.setString(1, email)
+            ps.executeQuery().use { rs ->
+                if (rs.next()) Account(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)) else null
             }
         }
     }

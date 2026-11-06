@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kg.aimentor.shared.ItArea
@@ -97,6 +98,10 @@ fun AppTextField(
     minLines: Int = 1,
     enabled: Boolean = true,
     code: Boolean = false,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -105,9 +110,12 @@ fun AppTextField(
         singleLine = singleLine,
         minLines = minLines,
         enabled = enabled,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        visualTransformation = visualTransformation,
         shape = RoundedCornerShape(18.dp),
         textStyle = if (code) LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace, fontSize = 15.sp) else LocalTextStyle.current,
-        keyboardOptions = if (code) {
+        keyboardOptions = keyboardOptions ?: if (code) {
             KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false)
         } else {
             KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)

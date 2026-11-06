@@ -26,6 +26,8 @@ import kg.aimentor.shared.DevAuthRequest
 import kg.aimentor.shared.ErrorDto
 import kg.aimentor.shared.EvaluationDto
 import kg.aimentor.shared.GoogleAuthRequest
+import kg.aimentor.shared.LoginRequest
+import kg.aimentor.shared.RegisterRequest
 import kg.aimentor.shared.PlanDto
 import kg.aimentor.shared.ProfileRequest
 import kg.aimentor.shared.ProgressDto
@@ -41,6 +43,8 @@ class ServerMessage(message: String) : Exception(message)
 
 // Всё, что приложение умеет спрашивать у сервера. Интерфейс – чтобы в тестах подменять сеть.
 interface MentorBackend {
+    suspend fun register(req: RegisterRequest): AuthResponse
+    suspend fun login(req: LoginRequest): AuthResponse
     suspend fun loginGoogle(idToken: String): AuthResponse
     suspend fun loginDev(deviceId: String): AuthResponse
     suspend fun plan(): PlanDto? // null – профиля ещё нет (нужен онбординг)
@@ -65,12 +69,13 @@ class MentorApi(baseUrl: String, private val token: () -> String?) : MentorBacke
         }
     }
 
-    // 401 превращаем в SessionExpired, понятные ошибки сервера – в ServerMessage
-    private suspend fun <T> call(block: suspend () -> T): T = try {
+    // 401 превращаем в SessionExpired, понятные ошибки сервера – в ServerMessage.
+    // При входе (signIn = true) 401 означает «неверный пароль», а не истёкшую сессию.
+    private suspend fun <T> call(signIn: Boolean = false, block: suspend () -> T): T = try {
         block()
     } catch (e: ClientRequestException) {
-        when (e.response.status) {
-            HttpStatusCode.Unauthorized -> throw SessionExpired()
+        when {
+            e.response.status == HttpStatusCode.Unauthorized && !signIn -> throw SessionExpired()
             else -> {
                 val text = runCatching { e.response.body<ErrorDto>().error }.getOrNull()
                 throw if (text != null) ServerMessage(text) else e
@@ -78,7 +83,21 @@ class MentorApi(baseUrl: String, private val token: () -> String?) : MentorBacke
         }
     }
 
-    override suspend fun loginGoogle(idToken: String): AuthResponse = call {
+    override suspend fun register(req: RegisterRequest): AuthResponse = call(signIn = true) {
+        client.post("api/auth/register") {
+            contentType(ContentType.Application.Json)
+            setBody(req)
+        }.body()
+    }
+
+    override suspend fun login(req: LoginRequest): AuthResponse = call(signIn = true) {
+        client.post("api/auth/login") {
+            contentType(ContentType.Application.Json)
+            setBody(req)
+        }.body()
+    }
+
+    override suspend fun loginGoogle(idToken: String): AuthResponse = call(signIn = true) {
         client.post("api/auth/google") {
             contentType(ContentType.Application.Json)
             setBody(GoogleAuthRequest(idToken))

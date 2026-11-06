@@ -98,8 +98,15 @@ data class GoogleAuthRequest(val idToken: String)
 @Serializable
 data class DevAuthRequest(val deviceId: String)
 
+// Регистрация и вход по email и паролю
 @Serializable
-data class AuthResponse(val token: String, val userId: String)
+data class RegisterRequest(val name: String, val email: String, val password: String)
+
+@Serializable
+data class LoginRequest(val email: String, val password: String)
+
+@Serializable
+data class AuthResponse(val token: String, val userId: String, val name: String? = null)
 
 // ---------- Настройки ----------
 

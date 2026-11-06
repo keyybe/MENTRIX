@@ -8,7 +8,7 @@ Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin 
 
 | Функция | Где в коде |
 |---|---|
-| Вход через Google (Credential Manager) и JWT-сессии | `app/GoogleSignIn.kt`, `server/Auth.kt`, `POST /api/auth/google` |
+| Вход через Google (Credential Manager), вход и регистрация по email/паролю (PBKDF2) и JWT-сессии | `app/LoginScreen.kt`, `server/Accounts.kt`, `POST /api/auth/*` |
 | F1 Онбординг и выбор направления, смена направления | `app/Screens.kt` (OnboardingScreen), `POST /api/profile` |
 | F2 План на 8 недель из проверенных источников (42 задания на направление, есть задания с кодом) | `server/MentorService.kt` (Planner), `server/resources/sources.json` |
 | F3 Экран «Сегодня» и миссия дня, сгенерированная ИИ без повторов | `TodayScreen`, `GET /api/today` |

@@ -1,6 +1,12 @@
 package kg.aimentor.app
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -53,22 +59,41 @@ fun MentorApp(vm: MentorViewModel = viewModel(factory = MentorViewModel.Factory)
     MentorTheme {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Box(Modifier.fillMaxSize()) {
-                when {
-                    !state.signedIn ->
-                        LoginScreen(state, onGoogle = vm::loginWithGoogle, onDev = vm::loginDev, onError = vm::loginFailed)
-
-                    state.loading && state.plan == null ->
-                        Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator(color = Palette.Indigo) }
-
-                    !state.hasProfile || state.changingArea ->
-                        OnboardingScreen(
-                            state,
-                            onCreate = vm::createProfile,
-                            onRetry = vm::load,
-                            onCancel = if (state.changingArea) vm::cancelChangeArea else null,
+                val destination = when {
+                    !state.signedIn -> AppDestination.Login
+                    state.loading && state.plan == null -> AppDestination.Loading
+                    !state.hasProfile || state.changingArea -> AppDestination.Onboarding
+                    else -> AppDestination.Main
+                }
+                AnimatedContent(
+                    targetState = destination,
+                    transitionSpec = {
+                        (fadeIn() + slideInHorizontally { it / 14 }) togetherWith
+                            (fadeOut() + slideOutHorizontally { -it / 14 })
+                    },
+                    label = "app destination",
+                ) { target ->
+                    when (target) {
+                        AppDestination.Login -> LoginScreen(
+                            state = state,
+                            onLogin = vm::login,
+                            onRegister = vm::register,
+                            onGoogle = vm::loginWithGoogle,
+                            onDev = vm::loginDev,
+                            onError = vm::loginFailed,
+                            onClearError = vm::clearError,
                         )
-
-                    else -> MainScaffold(state, vm)
+                        AppDestination.Loading ->
+                            Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator(color = Palette.Indigo) }
+                        AppDestination.Onboarding ->
+                            OnboardingScreen(
+                                state,
+                                onCreate = vm::createProfile,
+                                onRetry = vm::load,
+                                onCancel = if (state.changingArea) vm::cancelChangeArea else null,
+                            )
+                        AppDestination.Main -> MainScaffold(state, vm)
+                    }
                 }
                 SnackbarHost(
                     snackbar,
@@ -81,6 +106,8 @@ fun MentorApp(vm: MentorViewModel = viewModel(factory = MentorViewModel.Factory)
         }
     }
 }
+
+private enum class AppDestination { Login, Loading, Onboarding, Main }
 
 private val Tabs: List<Pair<ImageVector, String>> = listOf(
     Icons.Rounded.Home to "Главная",
@@ -163,24 +190,38 @@ private fun MainScaffold(state: UiState, vm: MentorViewModel) {
         },
     ) { padding ->
         val mod = Modifier.padding(padding).consumeWindowInsets(padding)
-        when (tab) {
-            0 -> HomeScreen(
-                state, mod,
-                onStartLesson = { lessonOpen = true },
-                onOpenChat = { chatOpen = true },
-                onOpenPlan = { tab = 1 },
-                onRetry = vm::load,
-            )
-            1 -> PlanScreen(state, mod, onStart = { lessonOpen = true })
-            2 -> ProfileScreen(
-                state, mod,
-                onEditProfile = { editProfileOpen = true },
-                onSaveSettings = vm::saveSettings,
-                onReminder = vm::setReminder,
-                onChangeArea = vm::startChangeArea,
-                onSignOut = { vm.signOut() },
-                onDelete = vm::deleteAccount,
-            )
+        AnimatedContent(
+            targetState = tab,
+            transitionSpec = {
+                if (targetState > initialState) {
+                    (fadeIn() + slideInHorizontally { it / 10 }) togetherWith
+                        (fadeOut() + slideOutHorizontally { -it / 10 })
+                } else {
+                    (fadeIn() + slideInHorizontally { -it / 10 }) togetherWith
+                        (fadeOut() + slideOutHorizontally { it / 10 })
+                }
+            },
+            label = "main tab",
+        ) { targetTab ->
+            when (targetTab) {
+                0 -> HomeScreen(
+                    state, mod,
+                    onStartLesson = { lessonOpen = true },
+                    onOpenChat = { chatOpen = true },
+                    onOpenPlan = { tab = 1 },
+                    onRetry = vm::load,
+                )
+                1 -> PlanScreen(state, mod, onStart = { lessonOpen = true })
+                2 -> ProfileScreen(
+                    state, mod,
+                    onEditProfile = { editProfileOpen = true },
+                    onSaveSettings = vm::saveSettings,
+                    onReminder = vm::setReminder,
+                    onChangeArea = vm::startChangeArea,
+                    onSignOut = { vm.signOut() },
+                    onDelete = vm::deleteAccount,
+                )
+            }
         }
     }
 }

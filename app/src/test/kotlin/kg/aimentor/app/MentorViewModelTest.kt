@@ -6,11 +6,13 @@ import kg.aimentor.shared.ChatReply
 import kg.aimentor.shared.ChatRequest
 import kg.aimentor.shared.EvaluationDto
 import kg.aimentor.shared.ItArea
+import kg.aimentor.shared.LoginRequest
 import kg.aimentor.shared.MissionDto
 import kg.aimentor.shared.MissionStatus
 import kg.aimentor.shared.PlanDto
 import kg.aimentor.shared.ProfileRequest
 import kg.aimentor.shared.ProgressDto
+import kg.aimentor.shared.RegisterRequest
 import kg.aimentor.shared.SettingsRequest
 import kg.aimentor.shared.SourceRef
 import kg.aimentor.shared.TodayDto
@@ -77,6 +79,8 @@ class MentorViewModelTest {
             failWith?.let { throw it }
         }
 
+        override suspend fun register(req: RegisterRequest) = AuthResponse("reg-token", "e:1", req.name).also { check() }
+        override suspend fun login(req: LoginRequest) = AuthResponse("login-token", "e:1", "Аня").also { check() }
         override suspend fun loginGoogle(idToken: String) = AuthResponse("google-token", "g:1").also { check() }
         override suspend fun loginDev(deviceId: String) = AuthResponse("dev-token", "dev:$deviceId").also { check() }
         override suspend fun plan(): PlanDto? { check(); return if (hasProfile) plan else null }
@@ -108,6 +112,31 @@ class MentorViewModelTest {
         assertFalse(state.signedIn)
         assertFalse(state.loading)
         assertEquals(0, backend.calls)
+    }
+
+    @Test
+    fun registerSavesTokenAndNameAndOpensOnboarding() {
+        backend.hasProfile = false
+        val session = FakeSession()
+        val vm = vm(session)
+        vm.register("Аня", "anya@mail.ru", "password1")
+        assertEquals("reg-token", session.token)
+        assertEquals("Аня", session.name)
+        val state = vm.state.value
+        assertTrue(state.signedIn)
+        assertFalse(state.hasProfile)
+    }
+
+    @Test
+    fun emailLoginSavesTokenAndLoadsData() {
+        val session = FakeSession()
+        val vm = vm(session)
+        vm.login("anya@mail.ru", "password1")
+        assertEquals("login-token", session.token)
+        assertEquals("Аня", session.name)
+        val state = vm.state.value
+        assertTrue(state.signedIn)
+        assertTrue(state.hasProfile)
     }
 
     @Test

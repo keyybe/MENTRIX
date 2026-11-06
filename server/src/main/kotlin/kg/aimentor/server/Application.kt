@@ -31,6 +31,10 @@ import kg.aimentor.shared.ChatRequest
 import kg.aimentor.shared.DevAuthRequest
 import kg.aimentor.shared.ErrorDto
 import kg.aimentor.shared.GoogleAuthRequest
+import kg.aimentor.shared.LoginRequest
+import kg.aimentor.shared.RegisterRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kg.aimentor.shared.ProfileRequest
 import kg.aimentor.shared.SettingsRequest
 import kotlinx.serialization.SerializationException
@@ -47,15 +51,27 @@ private fun config(name: String): String? =
 
 fun main() {
     val port = config("PORT")?.toIntOrNull() ?: 8080
-    val service = defaultService()
+    val store = defaultStore()
+    val service = defaultService(store)
     val auth = defaultAuth()
-    embeddedServer(Netty, port = port, host = "0.0.0.0") { module(service, auth) }.start(wait = true)
+    embeddedServer(Netty, port = port, host = "0.0.0.0") {
+        module(service, auth, accounts = AccountService(store))
+    }.start(wait = true)
 }
 
+// Если задан DATABASE_URL – данные хранятся в PostgreSQL, иначе в памяти (пропадают при перезапуске)
+fun defaultStore(): UserStore =
+    config("DATABASE_URL")?.let { url ->
+        log.info("Хранилище: PostgreSQL")
+        PostgresUserStore.connect(url, config("DATABASE_USER"), config("DATABASE_PASSWORD"))
+    } ?: run {
+        log.warn("DATABASE_URL не задан – данные хранятся в памяти и пропадут при перезапуске")
+        InMemoryUserStore()
+    }
+
 // Если заданы LLM_API_KEY и LLM_MODEL – проверяет внешняя модель, а офлайн-проверка остаётся резервом.
-// Если задан DATABASE_URL – данные хранятся в PostgreSQL, иначе в памяти (пропадают при перезапуске).
 // Ключи и пароли храним только в переменных окружения, в коде их быть не должно.
-fun defaultService(): MentorService {
+fun defaultService(store: UserStore = defaultStore()): MentorService {
     val rules = RuleBasedLlm()
     val baseUrl = config("LLM_BASE_URL") ?: "https://generativelanguage.googleapis.com/v1beta/openai/"
     val key = config("LLM_API_KEY")
@@ -68,14 +84,6 @@ fun defaultService(): MentorService {
     } else {
         log.info("LLM_API_KEY или LLM_MODEL не заданы – работает офлайн-проверка")
         rules
-    }
-
-    val store: UserStore = config("DATABASE_URL")?.let { url ->
-        log.info("Хранилище: PostgreSQL")
-        PostgresUserStore.connect(url, config("DATABASE_USER"), config("DATABASE_PASSWORD"))
-    } ?: run {
-        log.warn("DATABASE_URL не задан – данные хранятся в памяти и пропадут при перезапуске")
-        InMemoryUserStore()
     }
     return MentorService(SourceBase.load(), llm, store, rules)
 }
@@ -102,6 +110,8 @@ fun Application.module(
     service: MentorService = defaultService(),
     auth: AuthConfig = defaultAuth(),
     google: GoogleVerifier? = auth.googleClientIds.takeIf { it.isNotEmpty() }?.let { GoogleJwksVerifier(it) },
+    // должен работать с тем же хранилищем, что и service: иначе удаление аккаунта не сотрёт пароль
+    accounts: AccountService = AccountService(InMemoryUserStore()),
 ) {
     val tokens = TokenIssuer(auth.jwtSecret)
 
@@ -119,6 +129,8 @@ fun Application.module(
         exception<BadRequest> { call, e -> call.respond(HttpStatusCode.BadRequest, ErrorDto(e.message ?: "Неверный запрос")) }
         exception<NotFound> { call, e -> call.respond(HttpStatusCode.NotFound, ErrorDto(e.message ?: "Не найдено")) }
         exception<Unauthorized> { call, e -> call.respond(HttpStatusCode.Unauthorized, ErrorDto(e.message ?: "Нужно войти")) }
+        exception<Conflict> { call, e -> call.respond(HttpStatusCode.Conflict, ErrorDto(e.message ?: "Уже существует")) }
+        exception<TooManyRequests> { call, e -> call.respond(HttpStatusCode.TooManyRequests, ErrorDto(e.message ?: "Слишком много попыток")) }
         exception<BadRequestException> { call, _ -> call.respond(HttpStatusCode.BadRequest, ErrorDto("Неверный формат данных")) }
         exception<SerializationException> { call, _ -> call.respond(HttpStatusCode.BadRequest, ErrorDto("Неверный формат данных")) }
         exception<Throwable> { call, e ->
@@ -139,6 +151,17 @@ fun Application.module(
 
         route("/api") {
             route("/auth") {
+                // хеширование пароля и запрос к базе – тяжёлые операции, выносим их из потоков сервера
+                post("/register") {
+                    val req = call.receive<RegisterRequest>()
+                    val account = withContext(Dispatchers.IO) { accounts.register(req) }
+                    call.respond(HttpStatusCode.Created, AuthResponse(tokens.issue(account.userId), account.userId, account.name))
+                }
+                post("/login") {
+                    val req = call.receive<LoginRequest>()
+                    val account = withContext(Dispatchers.IO) { accounts.login(req) }
+                    call.respond(AuthResponse(tokens.issue(account.userId), account.userId, account.name))
+                }
                 post("/google") {
                     val verifier = google ?: throw NotFound("Вход через Google не настроен на сервере")
                     val req = call.receive<GoogleAuthRequest>()

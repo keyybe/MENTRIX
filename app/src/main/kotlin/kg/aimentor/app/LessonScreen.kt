@@ -1,6 +1,8 @@
 package kg.aimentor.app
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -164,8 +166,14 @@ private fun QuestionView(
                 enabled = ev == null,
                 code = mission.code,
             )
-            // неверный ответ: разбор прямо под полем
-            ev?.let { MistakeCard(it) }
+            // Разбор ответа мягко раскрывается прямо под полем.
+            AnimatedVisibility(
+                visible = ev != null,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + androidx.compose.animation.shrinkVertically(),
+            ) {
+                ev?.let { MistakeCard(it) }
+            }
             state.error?.let { Text(it, color = Palette.Coral, style = MaterialTheme.typography.bodyMedium) }
         }
 

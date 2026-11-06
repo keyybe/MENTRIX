@@ -10,9 +10,11 @@ import kg.aimentor.shared.ChatMessage
 import kg.aimentor.shared.ChatRequest
 import kg.aimentor.shared.ChatRole
 import kg.aimentor.shared.EvaluationDto
+import kg.aimentor.shared.LoginRequest
 import kg.aimentor.shared.PlanDto
 import kg.aimentor.shared.ProfileRequest
 import kg.aimentor.shared.ProgressDto
+import kg.aimentor.shared.RegisterRequest
 import kg.aimentor.shared.SettingsRequest
 import kg.aimentor.shared.TodayDto
 import kotlinx.coroutines.CancellationException
@@ -78,25 +80,46 @@ class MentorViewModel(
         }
     }
 
-    // ---------- Вход ----------
+    // ---------- Вход и регистрация ----------
 
-    fun loginWithGoogle(idToken: String, name: String?) {
-        // имя, которое человек уже поменял в профиле, не перезаписываем
-        if (session.name == null) session.name = name
-        _state.update { it.copy(userName = session.name) }
-        login { api.loginGoogle(idToken).token }
+    fun register(name: String, email: String, pass: String) = authenticate {
+        val auth = api.register(RegisterRequest(name.trim(), email.trim(), pass))
+        applyAuth(auth.token, auth.name)
     }
 
-    fun loginDev() = login { api.loginDev(session.deviceId).token }
+    fun login(email: String, pass: String) = authenticate {
+        val auth = api.login(LoginRequest(email.trim(), pass))
+        applyAuth(auth.token, auth.name)
+    }
 
-    private fun login(getToken: suspend () -> String) = launchSafely("Нет связи с сервером. Проверь, что он запущен.") {
+    fun loginWithGoogle(idToken: String, name: String?) = authenticate {
+        val auth = api.loginGoogle(idToken)
+        applyAuth(auth.token, name ?: auth.name)
+    }
+
+    fun loginDev() = authenticate {
+        val auth = api.loginDev(session.deviceId)
+        applyAuth(auth.token, auth.name)
+    }
+
+    private fun applyAuth(token: String, name: String?) {
+        session.token = token
+        if (session.name == null && !name.isNullOrBlank()) {
+            session.name = name
+        }
+        _state.update { it.copy(userName = session.name) }
+    }
+
+    private fun authenticate(block: suspend () -> Unit) = launchSafely("Нет связи с сервером. Проверь, что он запущен.") {
         _state.update { it.copy(submitting = true, error = null) }
-        session.token = getToken()
+        block()
         _state.update { it.copy(signedIn = true, submitting = false, loading = true) }
         refresh()
     }
 
     fun loginFailed(message: String) = _state.update { it.copy(error = message) }
+
+    fun clearError() = _state.update { it.copy(error = null) }
 
     // Имя и фото привязаны к аккаунту: при выходе стираем, чтобы их не увидел следующий человек
     fun signOut(notice: String? = null) {

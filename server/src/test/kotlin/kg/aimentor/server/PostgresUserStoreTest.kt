@@ -81,6 +81,19 @@ class PostgresUserStoreTest {
     }
 
     @Test
+    fun accountsAreUniqueByEmailAndDeletedWithUser() {
+        val uid = newUser()
+        val email = "$uid@test.local".lowercase()
+        assertTrue(store.createAccount(Account(uid, email, Passwords.hash("password1"), "Аня")))
+        assertTrue(!store.createAccount(Account(newUser(), email, "x", "Другая")), "email должен быть уникальным")
+        val found = assertNotNull(store.findAccount(email))
+        assertEquals(uid, found.userId)
+        assertTrue(Passwords.verify("password1", found.passwordHash))
+        store.delete(uid)
+        assertNull(store.findAccount(email))
+    }
+
+    @Test
     fun eventsCountedAndDeletedWithAccount() {
         val uid = newUser()
         val before = store.stats(now)
