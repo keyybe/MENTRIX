@@ -1,0 +1,14 @@
+// Настройки сборки iOS-приложения.
+// Свои значения лучше писать в Config.local.xcconfig (он в .gitignore), чтобы не попали в репозиторий.
+// В xcconfig «//» начинает комментарий, поэтому в адресах пишем «/$()/».
+
+// Адрес боевого сервера для Release-сборки. Debug ходит на http://localhost:8080/
+MENTOR_SERVER_URL_RELEASE = https:/$()/api.example.com/
+
+// OAuth client ID типа iOS из Google Cloud Console. Пусто – кнопка «Войти через Google» скрыта.
+GOOGLE_IOS_CLIENT_ID =
+
+// Команда разработчика для подписи (для запуска на iPhone)
+DEVELOPMENT_TEAM =
+
+#include? "Config.local.xcconfig"

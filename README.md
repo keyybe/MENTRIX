@@ -1,6 +1,6 @@
 # ИИ-ментор: MVP
 
-Первая версия по ТЗ: Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin + Ktor).
+Первая версия по ТЗ: Android-приложение (Kotlin + Jetpack Compose), iOS-приложение (Swift + SwiftUI, см. [`ios/README.md`](ios/README.md)) и сервер (Kotlin + Ktor).
 
 Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin + Ktor + PostgreSQL), которые ведут человека по личному плану обучения в IT: миссия на каждый день, проверка ответов ИИ, повторение слабых тем.
 
