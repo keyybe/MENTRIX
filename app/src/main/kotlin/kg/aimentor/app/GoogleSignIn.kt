@@ -10,7 +10,7 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 
 sealed interface GoogleSignInResult {
-    data class Success(val idToken: String) : GoogleSignInResult
+    data class Success(val idToken: String, val name: String?) : GoogleSignInResult
     data object Cancelled : GoogleSignInResult
     data class Failed(val message: String) : GoogleSignInResult
 }
@@ -24,7 +24,8 @@ suspend fun signInWithGoogle(context: Context, webClientId: String): GoogleSignI
     return try {
         val credential = CredentialManager.create(context).getCredential(context, request).credential
         if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-            GoogleSignInResult.Success(GoogleIdTokenCredential.createFrom(credential.data).idToken)
+            val google = GoogleIdTokenCredential.createFrom(credential.data)
+            GoogleSignInResult.Success(google.idToken, google.givenName ?: google.displayName)
         } else {
             GoogleSignInResult.Failed("Неожиданный тип учётных данных")
         }

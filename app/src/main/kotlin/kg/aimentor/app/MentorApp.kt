@@ -83,7 +83,7 @@ fun MentorApp(vm: MentorViewModel = viewModel(factory = MentorViewModel.Factory)
 }
 
 private val Tabs: List<Pair<ImageVector, String>> = listOf(
-    Icons.Rounded.Home to "Сегодня",
+    Icons.Rounded.Home to "Главная",
     Icons.Rounded.Timeline to "План",
     Icons.Rounded.Person to "Профиль",
 )
@@ -92,14 +92,47 @@ private val Tabs: List<Pair<ImageVector, String>> = listOf(
 private fun MainScaffold(state: UiState, vm: MentorViewModel) {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var chatOpen by rememberSaveable { mutableStateOf(false) }
+    var lessonOpen by rememberSaveable { mutableStateOf(false) }
+    var editProfileOpen by rememberSaveable { mutableStateOf(false) }
     val mission = state.today?.mission
 
-    // Чат открывается поверх вкладок и закрывается системной кнопкой «Назад»
+    // Урок и чат открываются поверх вкладок (чат – выше урока) и закрываются кнопкой «Назад».
+    // Если урок закрыли после проверки – обновляем данные, чтобы главная показала следующий урок.
+    val closeLesson = {
+        if (state.evaluation != null) vm.next()
+        lessonOpen = false
+    }
+    BackHandler(enabled = lessonOpen && !chatOpen) { closeLesson() }
     BackHandler(enabled = chatOpen) { chatOpen = false }
+    BackHandler(enabled = editProfileOpen) { editProfileOpen = false }
+    if (editProfileOpen) {
+        EditProfileScreen(
+            state,
+            onSaveName = vm::updateName,
+            onAvatar = vm::setAvatar,
+            onAvatarError = vm::avatarFailed,
+            onClose = { editProfileOpen = false },
+        )
+        return
+    }
     if (chatOpen && mission != null) {
         val chatVm: ChatViewModel = viewModel(factory = ChatViewModel.Factory)
         LaunchedEffect(mission.id) { chatVm.open(mission.id) }
         ChatScreen(chatVm, mission, onClose = { chatOpen = false })
+        return
+    }
+    if (lessonOpen) {
+        LessonScreen(
+            state,
+            onSubmit = vm::submitAnswer,
+            onNext = vm::next,
+            onFinish = {
+                vm.next()
+                lessonOpen = false
+            },
+            onClose = closeLesson,
+            onAskMentor = { chatOpen = true },
+        )
         return
     }
 
@@ -131,16 +164,17 @@ private fun MainScaffold(state: UiState, vm: MentorViewModel) {
     ) { padding ->
         val mod = Modifier.padding(padding).consumeWindowInsets(padding)
         when (tab) {
-            0 -> TodayScreen(
+            0 -> HomeScreen(
                 state, mod,
-                onSubmit = vm::submitAnswer,
-                onNext = vm::next,
-                onAskMentor = { chatOpen = true },
+                onStartLesson = { lessonOpen = true },
+                onOpenChat = { chatOpen = true },
+                onOpenPlan = { tab = 1 },
                 onRetry = vm::load,
             )
-            1 -> PlanScreen(state, mod, onStart = { tab = 0 })
+            1 -> PlanScreen(state, mod, onStart = { lessonOpen = true })
             2 -> ProfileScreen(
                 state, mod,
+                onEditProfile = { editProfileOpen = true },
                 onSaveSettings = vm::saveSettings,
                 onReminder = vm::setReminder,
                 onChangeArea = vm::startChangeArea,

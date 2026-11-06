@@ -25,6 +25,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -64,6 +65,8 @@ class UserState(
     // дневной лимит запросов к внешней модели
     @Serializable(LocalDateSerializer::class) var llmDay: LocalDate? = null,
     var llmCalls: Int = 0,
+    // дни (yyyy-MM-dd), когда засчитан хотя бы один урок – для полоски недели на главном экране
+    val doneDates: MutableList<String> = mutableListOf(),
 )
 
 // Планировщик: работает по правилам и не зависит от ИИ.
@@ -118,6 +121,7 @@ class MentorService(
         const val LLM_DAILY_LIMIT = 40 // запросов к внешней модели на человека в день, дальше – офлайн-режим
         const val CHAT_HISTORY = 12    // сколько последних сообщений чата отправляем модели
         const val MAX_CHAT_MESSAGE = 2000
+        const val KEEP_DONE_DATES = 60 // сколько дней активности хранить
         const val PREGENERATE = 2      // сколько следующих заданий держать готовыми
         val REVIEW_DAYS = listOf(1, 3, 7) // интервалы повторения ошибочной темы, дней
     }
@@ -302,6 +306,10 @@ class MentorService(
                 m.status = MissionStatus.DONE
                 st.gaps.remove(topic)
                 bumpStreak(st, now)
+                if (now.toString() !in st.doneDates) {
+                    st.doneDates += now.toString()
+                    while (st.doneDates.size > KEEP_DONE_DATES) st.doneDates.removeAt(0)
+                }
                 // успешное повторение – следующее через больший интервал, пока интервалы не кончатся
                 if (m.review && m.reviewStage in 1 until REVIEW_DAYS.size) {
                     scheduleReview(st, m, m.reviewStage + 1, now)
@@ -343,7 +351,19 @@ class MentorService(
             totalMissions = st.missions.size,
             planVersion = st.version,
             gaps = st.gaps.toList(),
+            weekActivity = weekActivity(st),
+            doneToday = st.lastDone == today(),
+            reviewsDue = st.missions.count {
+                it.review && it.status == MissionStatus.TODO && (it.notBefore == null || !it.notBefore.isAfter(today()))
+            },
         )
+    }
+
+    // Пн…Вс текущей недели: был ли в этот день засчитанный урок
+    private fun weekActivity(st: UserState): List<Boolean> {
+        val monday = today().with(DayOfWeek.MONDAY)
+        val done = st.doneDates.toSet()
+        return (0L..6L).map { monday.plusDays(it).toString() in done }
     }
 
     suspend fun delete(userId: String) {

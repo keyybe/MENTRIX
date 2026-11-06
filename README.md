@@ -1,4 +1,6 @@
-# ИИ-ментор
+# ИИ-ментор: MVP
+
+Первая версия по ТЗ: Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin + Ktor).
 
 Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin + Ktor + PostgreSQL), которые ведут человека по личному плану обучения в IT: миссия на каждый день, проверка ответов ИИ, повторение слабых тем.
 
@@ -30,7 +32,25 @@ Android-приложение (Kotlin + Jetpack Compose) и сервер (Kotlin 
 ```
 
 `./gradlew :server:run` запускает сервер в режиме разработки: данные в памяти, вход без Google разрешён (`AUTH_DEV=true`).
-Запусти модуль `app` на эмуляторе и нажми «Войти без Google (для разработки)». Debug-сборка ходит на `http://10.0.2.2:8080/`.
+Запусти модуль `app` на эмуляторе и нажми «Начать». Debug-сборка ходит на `http://10.0.2.2:8080/`.
+
+### С локальной PostgreSQL (данные не пропадают при перезапуске)
+
+```bash
+brew install postgresql@14 && brew services start postgresql@14
+psql -d postgres -c "CREATE ROLE mentor LOGIN PASSWORD 'пароль';" \
+  -c "CREATE DATABASE mentor OWNER mentor;" -c "CREATE DATABASE mentor_test OWNER mentor;"
+```
+
+В `.env` (см. `.env.example`) укажи `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` и `TEST_DATABASE_URL`, затем:
+
+```bash
+set -a; . ./.env; set +a
+./gradlew :server:run     # в логе: «Хранилище: PostgreSQL»
+./gradlew :server:test    # с TEST_DATABASE_URL запускаются и тесты на настоящей базе
+```
+
+Таблицы `users` и `events` создаются сами при первом запуске. Без `TEST_DATABASE_URL` тест `PostgresUserStoreTest` пропускается.
 
 ## Переменные окружения сервера
 

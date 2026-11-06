@@ -44,8 +44,10 @@ class MentorViewModelTest {
 
     private class FakeSession(override var token: String? = null) : Session {
         override val deviceId = "device-0001"
-        override var reminderHour: Int? = null
+        override var reminderMinutes: Int? = null
         override var lastPassedDay: String? = null
+        override var name: String? = null
+        override var avatarPath: String? = null
     }
 
     private class FakeCache : Cache {
@@ -58,9 +60,9 @@ class MentorViewModelTest {
     }
 
     private class FakeReminders : ReminderScheduler {
-        var hour: Int? = null
-        override fun schedule(hour: Int) { this.hour = hour }
-        override fun cancel() { hour = null }
+        var time: Pair<Int, Int>? = null
+        override fun schedule(hour: Int, minute: Int) { time = hour to minute }
+        override fun cancel() { time = null }
     }
 
     // Сервер, поведение которого задаёт тест
@@ -172,21 +174,45 @@ class MentorViewModelTest {
     fun reminderIsScheduledAndCancelled() {
         val session = FakeSession("t")
         val vm = vm(session)
-        vm.setReminder(20)
-        assertEquals(20, reminders.hour)
-        assertEquals(20, session.reminderHour)
+        vm.setReminder(20 * 60 + 30)
+        assertEquals(20 to 30, reminders.time)
+        assertEquals(20 * 60 + 30, session.reminderMinutes)
+        assertEquals(20 * 60 + 30, vm.state.value.reminderMinutes)
         vm.setReminder(null)
-        assertNull(reminders.hour)
+        assertNull(reminders.time)
+    }
+
+    @Test
+    fun nameIsEditedAndKeptOnGoogleLogin() {
+        val session = FakeSession()
+        val vm = vm(session)
+        vm.updateName("  Аня  ")
+        assertEquals("Аня", vm.state.value.userName)
+        vm.loginWithGoogle("id-token", "Anna Google")
+        assertEquals("Аня", session.name) // введённое вручную имя не затирается
+        vm.updateName("   ")
+        assertNull(vm.state.value.userName)
+    }
+
+    @Test
+    fun signOutForgetsNameAndAvatar() {
+        val session = FakeSession("t").apply { name = "Аня"; avatarPath = "/no/such/file.jpg" }
+        val vm = vm(session)
+        assertEquals("/no/such/file.jpg", vm.state.value.avatarPath)
+        vm.signOut()
+        assertNull(session.name)
+        assertNull(session.avatarPath)
+        assertNull(vm.state.value.avatarPath)
     }
 
     @Test
     fun deleteAccountClearsEverything() {
         val vm = vm(FakeSession("t"))
-        vm.setReminder(9)
+        vm.setReminder(9 * 60)
         vm.deleteAccount()
         assertFalse(vm.state.value.hasProfile)
         assertNull(cache.plan)
-        assertNull(reminders.hour)
+        assertNull(reminders.time)
     }
 
     @Test

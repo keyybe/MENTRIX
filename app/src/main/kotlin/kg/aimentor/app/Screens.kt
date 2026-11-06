@@ -1,20 +1,11 @@
 package kg.aimentor.app
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +13,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
@@ -37,51 +27,33 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Code
-import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Dns
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FitnessCenter
 import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.LocalCafe
-import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.RocketLaunch
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.SwapHoriz
-import androidx.compose.material.icons.rounded.TaskAlt
 import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material.icons.rounded.Work
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -91,19 +63,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import kg.aimentor.shared.ItArea
 import kg.aimentor.shared.Level
 import kg.aimentor.shared.MissionDto
 import kg.aimentor.shared.MissionStatus
-import kg.aimentor.shared.PlanDto
 import kg.aimentor.shared.ProfileRequest
 
 // ---------- Общие элементы ----------
@@ -121,7 +88,7 @@ private val ItArea.hint get() = when (this) {
 }
 
 @Composable
-private fun AppTextField(
+fun AppTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -312,184 +279,6 @@ private fun Question(title: String, subtitle: String) {
     }
 }
 
-// ---------- Урок дня (F3, F4) ----------
-
-// Шапка с градиентом: кольцо прогресса плана, серия и пройденные уроки
-@Composable
-private fun TodayHeader(state: UiState) {
-    val p = state.progress
-    val progress = if (p == null || p.totalMissions == 0) 0f else p.doneMissions.toFloat() / p.totalMissions
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(HeroGradient)
-            .padding(20.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        ProgressRing(progress) {
-            Text("${(progress * 100).toInt()}%", color = Color.White, style = MaterialTheme.typography.titleMedium)
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(state.plan?.area?.title ?: "Мой план", color = Color.White, style = MaterialTheme.typography.titleLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoPill(Icons.Rounded.LocalFireDepartment, "${p?.streak ?: 0} дн.", Color.White, Color.White.copy(alpha = 0.18f))
-                InfoPill(Icons.Rounded.TaskAlt, "${p?.doneMissions ?: 0} из ${p?.totalMissions ?: 0}", Color.White, Color.White.copy(alpha = 0.18f))
-            }
-        }
-    }
-}
-
-@Composable
-fun TodayScreen(
-    state: UiState,
-    modifier: Modifier,
-    onSubmit: (String) -> Unit,
-    onNext: () -> Unit,
-    onAskMentor: () -> Unit,
-    onRetry: () -> Unit,
-) {
-    val today = state.today
-    val mission = today?.mission
-    val uri = LocalUriHandler.current
-    var answer by rememberSaveable(mission?.id) { mutableStateOf("") }
-    val ev = state.evaluation
-
-    Column(
-        modifier
-            .fillMaxSize()
-            .imePadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Text("Привет! Готов учиться?", style = MaterialTheme.typography.headlineSmall)
-        TodayHeader(state)
-
-        if (state.offline) {
-            SoftCard(color = Palette.CoralSoft, modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.WifiOff, contentDescription = null, tint = Palette.Coral, modifier = Modifier.size(18.dp))
-                    Text("Нет связи – показаны сохранённые данные", style = MaterialTheme.typography.bodySmall, color = Palette.Coral, modifier = Modifier.weight(1f).padding(start = 8.dp))
-                    TextButton(onClick = onRetry) { Text("Обновить", color = Palette.Coral) }
-                }
-            }
-        }
-
-        if (mission == null) {
-            SoftCard(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    IconTile(Icons.Rounded.EmojiEvents, Palette.Amber, Palette.AmberSoft, size = 72.dp)
-                    Text("На сегодня всё", style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        today?.message ?: "Возвращайся завтра за новым уроком.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Palette.InkSoft,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
-            return@Column
-        }
-
-        // карточка урока
-        SoftCard(modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (mission.review) {
-                        InfoPill(Icons.Rounded.Replay, "Повторение", Palette.Amber, Palette.AmberSoft)
-                    } else {
-                        InfoPill(Icons.Rounded.AutoAwesome, "Новый урок", Palette.Indigo, Palette.IndigoSoft)
-                    }
-                    if (mission.code) InfoPill(Icons.Rounded.Code, "Код", Palette.Mint, Palette.MintSoft)
-                    Spacer(Modifier.weight(1f))
-                    Text("${mission.minutes} мин", style = MaterialTheme.typography.labelMedium, color = Palette.InkSoft)
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(mission.topic, style = MaterialTheme.typography.labelMedium, color = Palette.InkSoft)
-                    Text(mission.title, style = MaterialTheme.typography.titleLarge)
-                }
-                Box(Modifier.fillMaxWidth().height(1.dp).background(Palette.Line))
-                Text(mission.task, style = MaterialTheme.typography.headlineSmall.copy(fontSize = 20.sp, lineHeight = 28.sp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TonalButton(
-                        "Материал", { uri.openUri(mission.material.url) },
-                        icon = Icons.AutoMirrored.Rounded.MenuBook,
-                        color = Palette.Sky, background = Palette.SkySoft,
-                        modifier = Modifier.weight(1f),
-                    )
-                    TonalButton(
-                        "Подсказка", onAskMentor,
-                        icon = Icons.Rounded.Lightbulb,
-                        color = Palette.Amber, background = Palette.AmberSoft,
-                        enabled = !state.offline,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            }
-        }
-
-        AppTextField(
-            value = answer,
-            onValueChange = { answer = it },
-            placeholder = if (mission.code) "Напиши код здесь…" else "Твой ответ…",
-            minLines = if (mission.code) 5 else 3,
-            enabled = ev == null,
-            code = mission.code,
-        )
-
-        if (ev == null) {
-            state.error?.let { Text(it, color = Palette.Coral, style = MaterialTheme.typography.bodyMedium) }
-            PrimaryButton(
-                text = "Проверить",
-                onClick = { onSubmit(answer) },
-                enabled = answer.isNotBlank() && !state.offline,
-                loading = state.submitting,
-            )
-        }
-
-        AnimatedVisibility(visible = ev != null, enter = fadeIn() + expandVertically()) {
-            ev?.let { ResultCard(it.passed, it.score, it.feedback, it.gaps, onNext) }
-        }
-        Spacer(Modifier.height(8.dp))
-    }
-}
-
-@Composable
-private fun ResultCard(passed: Boolean, score: Int, feedback: String, gaps: List<String>, onNext: () -> Unit) {
-    val accent = if (passed) Palette.Mint else Palette.Amber
-    SoftCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                IconTile(
-                    if (passed) Icons.Rounded.CheckCircle else Icons.Rounded.Lightbulb,
-                    tint = accent,
-                    background = if (passed) Palette.MintSoft else Palette.AmberSoft,
-                    size = 48.dp,
-                )
-                Column(Modifier.weight(1f)) {
-                    Text(if (passed) "Верно!" else "Почти получилось", style = MaterialTheme.typography.titleLarge)
-                    Text(if (passed) "Урок пройден" else "Попробуй ещё раз или спроси подсказку", style = MaterialTheme.typography.bodySmall, color = Palette.InkSoft)
-                }
-                Text("$score%", style = MaterialTheme.typography.headlineSmall, color = accent)
-            }
-            Text(feedback, style = MaterialTheme.typography.bodyLarge)
-            gaps.forEach { gap ->
-                Row(verticalAlignment = Alignment.Top) {
-                    Box(Modifier.padding(top = 8.dp).size(6.dp).clip(CircleShape).background(accent))
-                    Text(gap, style = MaterialTheme.typography.bodyMedium, color = Palette.InkSoft, modifier = Modifier.padding(start = 10.dp))
-                }
-            }
-            PrimaryButton(
-                text = if (passed) "Дальше" else "Понятно",
-                onClick = onNext,
-                brush = if (passed) androidx.compose.ui.graphics.Brush.linearGradient(listOf(Palette.Mint, Color(0xFF0EA5A0))) else PrimaryGradient,
-            )
-        }
-    }
-}
-
 // ---------- План: недели и уроки ----------
 
 @Composable
@@ -581,216 +370,5 @@ private fun MissionRow(m: MissionDto, current: Boolean, onClick: () -> Unit) {
             Text(sub, style = MaterialTheme.typography.bodySmall, color = if (current) Palette.Indigo else Palette.InkSoft)
         }
         if (current) Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Palette.Indigo)
-    }
-}
-
-// ---------- Профиль (F8) ----------
-
-@Composable
-fun ProfileScreen(
-    state: UiState,
-    modifier: Modifier,
-    onSaveSettings: (goal: String, minutesPerDay: Int, daysPerWeek: Int) -> Unit,
-    onReminder: (hour: Int?) -> Unit,
-    onChangeArea: () -> Unit,
-    onSignOut: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    var confirm by rememberSaveable { mutableStateOf(false) }
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        // шапка с градиентом и статистикой
-        Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(HeroGradient).padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(56.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.2f)), contentAlignment = Alignment.Center) {
-                    Icon(state.plan?.area?.icon ?: Icons.Rounded.School, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
-                }
-                Column {
-                    Text("Мой профиль", style = MaterialTheme.typography.titleLarge, color = Color.White)
-                    state.plan?.let { Text(it.goal, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f)) }
-                }
-            }
-            state.progress?.let { p ->
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    HeroStat("${p.streak}", "дней подряд", Modifier.weight(1f))
-                    HeroStat("${p.doneMissions}", "уроков", Modifier.weight(1f))
-                    HeroStat("${if (p.totalMissions == 0) 0 else p.doneMissions * 100 / p.totalMissions}%", "плана", Modifier.weight(1f))
-                }
-            }
-        }
-
-        state.progress?.gaps?.takeIf { it.isNotEmpty() }?.let { gaps ->
-            SoftCard(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    IconTile(Icons.Rounded.Replay, Palette.Amber, Palette.AmberSoft)
-                    Column {
-                        Text("Темы на повторение", style = MaterialTheme.typography.titleMedium)
-                        Text(gaps.joinToString(", "), style = MaterialTheme.typography.bodyMedium, color = Palette.InkSoft)
-                    }
-                }
-            }
-        }
-
-        state.plan?.let { SettingsCard(it, state.submitting || state.offline, onSaveSettings) }
-        ReminderCard(state.reminderHour, onReminder)
-
-        SoftCard(modifier = Modifier.fillMaxWidth()) {
-            ActionRow(Icons.Rounded.SwapHoriz, "Сменить направление", Palette.Indigo, enabled = !state.offline, onClick = onChangeArea)
-            Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(1.dp).background(Palette.Line))
-            ActionRow(Icons.AutoMirrored.Rounded.Logout, "Выйти", Palette.InkSoft, onClick = onSignOut)
-            Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(1.dp).background(Palette.Line))
-            ActionRow(Icons.Rounded.DeleteOutline, "Удалить аккаунт", Palette.Coral, enabled = !state.offline) { confirm = true }
-        }
-        Spacer(Modifier.height(8.dp))
-    }
-
-    if (confirm) {
-        AlertDialog(
-            onDismissRequest = { confirm = false },
-            containerColor = Palette.Surface,
-            title = { Text("Удалить аккаунт?") },
-            text = { Text("План, прогресс и серия будут удалены без возможности восстановления.") },
-            confirmButton = { TextButton(onClick = { confirm = false; onDelete() }) { Text("Удалить", color = Palette.Coral) } },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text("Отмена", color = Palette.Ink) } },
-        )
-    }
-}
-
-@Composable
-private fun HeroStat(value: String, label: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier.clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = 0.16f)).padding(vertical = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(value, style = MaterialTheme.typography.titleLarge, color = Color.White)
-        Text(label, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.85f))
-    }
-}
-
-@Composable
-private fun ActionRow(icon: ImageVector, text: String, tint: Color, enabled: Boolean = true, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().pressable(enabled = enabled, onClick = onClick).padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        IconTile(icon, if (enabled) tint else Palette.InkSoft, (if (enabled) tint else Palette.InkSoft).copy(alpha = 0.1f), size = 38.dp)
-        Text(text, style = MaterialTheme.typography.titleSmall, color = if (enabled) Palette.Ink else Palette.InkSoft, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = Palette.InkSoft)
-    }
-}
-
-@Composable
-private fun CardHeader(icon: ImageVector, tint: Color, title: String, subtitle: String? = null, trailing: @Composable () -> Unit = {}) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        IconTile(icon, tint, tint.copy(alpha = 0.12f), size = 38.dp)
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = Palette.InkSoft) }
-        }
-        trailing()
-    }
-}
-
-@Composable
-private fun SettingsCard(plan: PlanDto, busy: Boolean, onSave: (String, Int, Int) -> Unit) {
-    // ключ – текущие значения с сервера: после сохранения поля принимают новые значения
-    var goal by rememberSaveable(plan.goal) { mutableStateOf(plan.goal) }
-    var minutes by rememberSaveable(plan.minutesPerDay) { mutableFloatStateOf(plan.minutesPerDay.toFloat()) }
-    var days by rememberSaveable(plan.daysPerWeek) { mutableFloatStateOf(plan.daysPerWeek.toFloat()) }
-    val changed = goal.trim() != plan.goal || minutes.toInt() != plan.minutesPerDay || days.toInt() != plan.daysPerWeek
-
-    SoftCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            CardHeader(Icons.Rounded.Tune, Palette.Indigo, "Настройки плана")
-            AppTextField(value = goal, onValueChange = { goal = it }, placeholder = "Цель", singleLine = true)
-            LabeledSlider("Минут в день", "${minutes.toInt()}", minutes, { minutes = it }, 15f..40f, 4)
-            LabeledSlider("Дней в неделю", "${days.toInt()}", days, { days = it }, 3f..7f, 3)
-            AnimatedVisibility(changed) {
-                PrimaryButton(text = "Сохранить", onClick = { onSave(goal, minutes.toInt(), days.toInt()) }, enabled = goal.isNotBlank() && !busy)
-            }
-        }
-    }
-}
-
-@Composable
-private fun LabeledSlider(label: String, value: String, current: Float, onChange: (Float) -> Unit, range: ClosedFloatingPointRange<Float>, steps: Int) {
-    Column {
-        Row {
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = Palette.InkSoft, modifier = Modifier.weight(1f))
-            Text(value, style = MaterialTheme.typography.titleSmall, color = Palette.Indigo)
-        }
-        Slider(
-            value = current, onValueChange = onChange, valueRange = range, steps = steps,
-            colors = SliderDefaults.colors(
-                thumbColor = Palette.Indigo,
-                activeTrackColor = Palette.Indigo,
-                inactiveTrackColor = Palette.IndigoSoft,
-                activeTickColor = Color.White.copy(alpha = 0.6f),
-                inactiveTickColor = Palette.Indigo.copy(alpha = 0.3f),
-            ),
-        )
-    }
-}
-
-@Composable
-private fun ReminderCard(hour: Int?, onReminder: (Int?) -> Unit) {
-    val context = LocalContext.current
-    var selectedHour by rememberSaveable { mutableIntStateOf(hour ?: 19) }
-    var denied by rememberSaveable { mutableStateOf(false) }
-    // с Android 13 на уведомления нужно разрешение
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        denied = !granted
-        if (granted) onReminder(selectedHour)
-    }
-    fun enable() {
-        val needsPermission = Build.VERSION.SDK_INT >= 33 &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        if (needsPermission) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onReminder(selectedHour)
-    }
-
-    SoftCard(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            CardHeader(
-                Icons.Rounded.Notifications, Palette.Amber, "Напоминание",
-                if (hour != null) "Каждый день в $hour:00" else "Выключено",
-            ) {
-                Switch(
-                    checked = hour != null,
-                    onCheckedChange = { on -> if (on) enable() else onReminder(null) },
-                    colors = SwitchDefaults.colors(checkedTrackColor = Palette.Indigo, uncheckedBorderColor = Palette.Line, uncheckedTrackColor = Palette.Background),
-                )
-            }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(8, 12, 18, 20, 22).forEach { h ->
-                    val selected = selectedHour == h
-                    Text(
-                        "$h:00",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (selected) Color.White else Palette.Ink,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (selected) Palette.Indigo else Palette.Background)
-                            .pressable {
-                                selectedHour = h
-                                if (hour != null) onReminder(h)
-                            }
-                            .padding(horizontal = 14.dp, vertical = 8.dp),
-                    )
-                }
-            }
-            if (denied) {
-                Text(
-                    "Без разрешения на уведомления напоминания не придут. Разреши их в настройках телефона.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Palette.Coral,
-                )
-            }
-        }
     }
 }

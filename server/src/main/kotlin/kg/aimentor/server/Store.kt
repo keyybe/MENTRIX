@@ -82,7 +82,9 @@ class InMemoryUserStore : UserStore {
     }
 }
 
-class PostgresUserStore(private val ds: HikariDataSource) : UserStore {
+class PostgresUserStore(private val ds: HikariDataSource) : UserStore, AutoCloseable {
+    override fun close() = ds.close()
+
     init {
         ds.connection.use { c ->
             c.createStatement().use { st ->

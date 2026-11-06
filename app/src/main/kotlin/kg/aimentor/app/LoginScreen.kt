@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     state: UiState,
-    onGoogle: (idToken: String) -> Unit,
+    onGoogle: (idToken: String, name: String?) -> Unit,
     onDev: () -> Unit,
     onError: (String) -> Unit,
 ) {
@@ -105,7 +105,7 @@ fun LoginScreen(
                     onClick = {
                         scope.launch {
                             when (val result = signInWithGoogle(context, BuildConfig.GOOGLE_CLIENT_ID)) {
-                                is GoogleSignInResult.Success -> onGoogle(result.idToken)
+                                is GoogleSignInResult.Success -> onGoogle(result.idToken, result.name)
                                 is GoogleSignInResult.Failed -> onError(result.message)
                                 GoogleSignInResult.Cancelled -> Unit
                             }

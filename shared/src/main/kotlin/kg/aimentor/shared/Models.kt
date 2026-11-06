@@ -81,6 +81,9 @@ data class ProgressDto(
     val totalMissions: Int,
     val planVersion: Int,
     val gaps: List<String>,
+    val weekActivity: List<Boolean> = emptyList(), // пн…вс текущей недели: был ли засчитанный урок
+    val doneToday: Boolean = false,
+    val reviewsDue: Int = 0, // повторения, у которых уже наступил срок
 )
 
 @Serializable

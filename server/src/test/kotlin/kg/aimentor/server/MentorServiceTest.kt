@@ -144,6 +144,27 @@ class MentorServiceTest {
     }
 
     @Test
+    fun progressShowsWeekActivityAndDueReviews() = runBlocking {
+        // 2026-11-02 – понедель
+        service.createProfile(uid, profile())
+        assertEquals(List(7) { false }, service.progress(uid).weekActivity)
+        service.passToday()
+        now = now.plusDays(2) // среда
+        service.failTodayTwice()
+        var p = service.progress(uid)
+        assertEquals(listOf(true, false, false, false, false, false, false), p.weekActivity)
+        assertFalse(p.doneToday)
+        assertEquals(0, p.reviewsDue) // повторение откроется завтра
+        now = now.plusDays(1)
+        p = service.progress(uid)
+        assertEquals(1, p.reviewsDue)
+        service.passToday() // сначала выдаётся повторение
+        p = service.progress(uid)
+        assertTrue(p.doneToday)
+        assertEquals(listOf(true, false, false, true, false, false, false), p.weekActivity)
+    }
+
+    @Test
     fun twoBadAnswersMoveOnAndScheduleReview() = runBlocking {
         service.createProfile(uid, profile())
         val first = assertNotNull(service.today(uid).mission)

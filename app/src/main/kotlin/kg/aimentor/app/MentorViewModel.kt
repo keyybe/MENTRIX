@@ -36,7 +36,9 @@ data class UiState(
     val today: TodayDto? = null,
     val progress: ProgressDto? = null,
     val evaluation: EvaluationDto? = null,
-    val reminderHour: Int? = null,
+    val reminderMinutes: Int? = null, // минуты от полуночи, null – напоминания выключены
+    val userName: String? = null,
+    val avatarPath: String? = null,
     val error: String? = null,
     val notice: String? = null, // короткое сообщение для Snackbar
 )
@@ -50,7 +52,10 @@ class MentorViewModel(
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
-        UiState(signedIn = session.token != null, loading = session.token != null, reminderHour = session.reminderHour)
+        UiState(
+            signedIn = session.token != null, loading = session.token != null,
+            reminderMinutes = session.reminderMinutes, userName = session.name, avatarPath = session.avatarPath,
+        )
     )
     val state: StateFlow<UiState> = _state.asStateFlow()
 
@@ -75,7 +80,12 @@ class MentorViewModel(
 
     // ---------- Вход ----------
 
-    fun loginWithGoogle(idToken: String) = login { api.loginGoogle(idToken).token }
+    fun loginWithGoogle(idToken: String, name: String?) {
+        // имя, которое человек уже поменял в профиле, не перезаписываем
+        if (session.name == null) session.name = name
+        _state.update { it.copy(userName = session.name) }
+        login { api.loginGoogle(idToken).token }
+    }
 
     fun loginDev() = login { api.loginDev(session.deviceId).token }
 
@@ -88,10 +98,14 @@ class MentorViewModel(
 
     fun loginFailed(message: String) = _state.update { it.copy(error = message) }
 
+    // Имя и фото привязаны к аккаунту: при выходе стираем, чтобы их не увидел следующий человек
     fun signOut(notice: String? = null) {
         session.token = null
+        session.name = null
+        AvatarStore.delete(session.avatarPath)
+        session.avatarPath = null
         cache.clear()
-        _state.value = UiState(signedIn = false, loading = false, reminderHour = session.reminderHour, notice = notice)
+        _state.value = UiState(signedIn = false, loading = false, reminderMinutes = session.reminderMinutes, notice = notice)
     }
 
     // ---------- Данные ----------
@@ -182,18 +196,36 @@ class MentorViewModel(
         _state.update { it.copy(notice = "Настройки сохранены") }
     }
 
-    // null – выключить напоминания
-    fun setReminder(hour: Int?) {
-        session.reminderHour = hour
-        if (hour == null) reminders.cancel() else reminders.schedule(hour)
-        _state.update { it.copy(reminderHour = hour) }
+    // minutes – время в минутах от полуночи, null – выключить напоминания
+    fun setReminder(minutes: Int?) {
+        session.reminderMinutes = minutes
+        if (minutes == null) reminders.cancel() else reminders.schedule(minutes / 60, minutes % 60)
+        _state.update { it.copy(reminderMinutes = minutes) }
     }
+
+    // ---------- Профиль на устройстве ----------
+
+    fun updateName(name: String) {
+        session.name = name.trim().take(40).ifBlank { null }
+        _state.update { it.copy(userName = session.name, notice = "Профиль сохранён") }
+    }
+
+    // path – уже сохранённый файл (AvatarStore.save), null – удалить фото
+    fun setAvatar(path: String?) {
+        val old = session.avatarPath
+        if (old != path) AvatarStore.delete(old)
+        session.avatarPath = path
+        _state.update { it.copy(avatarPath = path) }
+    }
+
+    fun avatarFailed() = _state.update { it.copy(notice = "Не удалось загрузить фото") }
 
     fun deleteAccount() = launchSafely("Не удалось удалить аккаунт.") {
         api.deleteAccount()
         cache.clear()
         setReminder(null)
-        _state.value = UiState(signedIn = true, loading = false, hasProfile = false, notice = "Аккаунт и данные удалены")
+        setAvatar(null)
+        _state.value = UiState(signedIn = true, loading = false, hasProfile = false, userName = session.name, notice = "Аккаунт и данные удалены")
     }
 
     fun consumeNotice() = _state.update { it.copy(notice = null) }

@@ -22,15 +22,15 @@ import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 interface ReminderScheduler {
-    fun schedule(hour: Int)
+    fun schedule(hour: Int, minute: Int)
     fun cancel()
 }
 
-// Ежедневное напоминание в выбранный час. Работает локально, без сервера и Firebase.
+// Ежедневное напоминание в выбранное время. Работает локально, без сервера и Firebase.
 class WorkReminderScheduler(private val context: Context) : ReminderScheduler {
-    override fun schedule(hour: Int) {
+    override fun schedule(hour: Int, minute: Int) {
         val now = LocalDateTime.now()
-        var next = now.toLocalDate().atTime(hour, 0)
+        var next = now.toLocalDate().atTime(hour, minute)
         if (!next.isAfter(now)) next = next.plusDays(1)
         val request = PeriodicWorkRequestBuilder<ReminderWorker>(1, TimeUnit.DAYS)
             .setInitialDelay(Duration.between(now, next).toMinutes(), TimeUnit.MINUTES)

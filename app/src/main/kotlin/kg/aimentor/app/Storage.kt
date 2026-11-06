@@ -13,8 +13,10 @@ import java.util.UUID
 interface Session {
     var token: String?
     val deviceId: String
-    var reminderHour: Int?   // null – напоминания выключены
+    var reminderMinutes: Int?  // время напоминания в минутах от полуночи, null – выключено
     var lastPassedDay: String? // день (yyyy-MM-dd), когда миссия засчитана – в этот день не напоминаем
+    var name: String?          // имя для приветствия и профиля (из Google или введённое вручную)
+    var avatarPath: String?    // фото профиля во внутренней памяти приложения
 }
 
 // Последние данные с сервера, чтобы приложение открывалось и без интернета
@@ -36,13 +38,26 @@ class PrefsSession(context: Context) : Session {
     override val deviceId: String = prefs.getString("uid", null)
         ?: UUID.randomUUID().toString().also { id -> prefs.edit { putString("uid", id) } }
 
-    override var reminderHour: Int?
-        get() = prefs.getInt("reminderHour", -1).takeIf { it >= 0 }
-        set(value) = prefs.edit { putInt("reminderHour", value ?: -1) }
+    // раньше хранился только час (reminderHour) – читаем его, если нового значения нет
+    override var reminderMinutes: Int?
+        get() = prefs.getInt("reminderMinutes", -1).takeIf { it >= 0 }
+            ?: prefs.getInt("reminderHour", -1).takeIf { it >= 0 }?.times(60)
+        set(value) = prefs.edit {
+            putInt("reminderMinutes", value ?: -1)
+            remove("reminderHour")
+        }
 
     override var lastPassedDay: String?
         get() = prefs.getString("lastPassedDay", null)
         set(value) = prefs.edit { putString("lastPassedDay", value) }
+
+    override var name: String?
+        get() = prefs.getString("name", null)
+        set(value) = prefs.edit { putString("name", value) }
+
+    override var avatarPath: String?
+        get() = prefs.getString("avatarPath", null)
+        set(value) = prefs.edit { putString("avatarPath", value) }
 }
 
 class PrefsCache(context: Context) : Cache {
