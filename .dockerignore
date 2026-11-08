@@ -1,7 +1,4 @@
-**/build
-.gradle
+**/.build
 .idea
-app
-local.properties
+ios
 .env
-*.iml

@@ -1,9 +1,8 @@
-.gradle/
-.kotlin/
-build/
-local.properties
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
 .idea/
-*.iml
 .DS_Store
 # секреты: ключи ИИ, JWT_SECRET, пароли БД
 .env

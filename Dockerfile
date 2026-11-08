@@ -1,22 +1,22 @@
-# Сервер ИИ-ментора. Сборка: docker build -t ai-mentor .
-FROM eclipse-temurin:17-jdk AS build
+# Сервер ИИ-ментора (Swift + Vapor). Сборка: docker build -t ai-mentor .
+FROM swift:6.1-noble AS build
 WORKDIR /src
-ENV SERVER_ONLY=1
-COPY gradlew settings.gradle.kts build.gradle.kts gradle.properties ./
-COPY gradle ./gradle
-COPY shared ./shared
-COPY server ./server
-# в gradle.properties указан JDK с компьютера разработчика – в контейнере используем свой
-RUN sed -i '/org.gradle.java.home/d' gradle.properties \
-    && chmod +x gradlew \
-    && ./gradlew :server:installDist --no-daemon --console=plain
+COPY server/Package.swift server/Package.resolved ./
+RUN swift package resolve
+COPY server/Sources ./Sources
+RUN swift build -c release --product mentor-server --static-swift-stdlib \
+    && mkdir /app \
+    && cp "$(swift build -c release --show-bin-path)/mentor-server" /app/ \
+    && cp -R "$(swift build -c release --show-bin-path)"/*.resources /app/
 
-FROM eclipse-temurin:17-jre
+FROM ubuntu:noble
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libcurl4 libxml2 tzdata \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system mentor
 WORKDIR /app
-COPY --from=build /src/server/build/install/server ./
-RUN useradd --system mentor
+COPY --from=build /app ./
 USER mentor
 ENV PORT=8080
 EXPOSE 8080
 # проверка живости для хостинга: GET /health отвечает "ok"
-CMD ["./bin/server"]
+CMD ["./mentor-server"]

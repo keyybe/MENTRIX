@@ -1,11 +1,11 @@
 # ИИ-ментор для iOS (Swift + SwiftUI)
 
-iOS-версия Android-приложения из `app/`: те же экраны и функции, тот же сервер (`server/`).
+iOS-приложение ИИ-ментора. Работает с сервером из `server/` (Swift + Vapor).
 Без сторонних зависимостей, iOS 17+.
 
 ## Запуск
 
-1. Запусти сервер из корня репозитория: `./gradlew :server:run` (проверка: http://localhost:8080/health).
+1. Запусти сервер из корня репозитория: `cd server && AUTH_DEV=true swift run mentor-server` (проверка: http://localhost:8080/health).
 2. Открой `ios/Mentrix.xcodeproj` в Xcode, выбери схему **Mentrix** и симулятор, нажми Run.
    Debug-сборка ходит на `http://localhost:8080/`, а симулятор видит localhost компьютера.
 3. Нажми «Без аккаунта (для разработки)» или зарегистрируйся по email.
@@ -36,22 +36,22 @@ DEVELOPMENT_TEAM = ABCDE12345
 
 ## Что где
 
-| Android (`app/`) | iOS (`ios/Mentrix/`) |
+| Файл | Что делает |
 |---|---|
-| `MentorApi.kt` (Ktor) | `Core/MentorAPI.swift` (URLSession) |
-| `shared/Models.kt` | `Core/Models.swift` |
-| `MentorViewModel.kt` | `Core/MentorViewModel.swift` (`@Observable`) |
-| `Storage.kt` (SharedPreferences) | `Core/Storage.swift` (токен в Связке ключей, остальное в UserDefaults) |
-| `Reminders.kt` (WorkManager) | `Core/Reminders.swift` (локальные уведомления на неделю вперёд) |
-| `GoogleSignIn.kt` (Credential Manager) | `Core/GoogleSignIn.swift` |
-| `Avatar.kt` | `Core/AvatarStore.swift` + `UserAvatar` в `UI/Theme.swift` |
-| `Theme.kt` | `UI/Theme.swift` |
-| `LoginScreen.kt`, `Screens.kt`, `HomeScreen.kt`, `LessonScreen.kt`, `ChatScreen.kt`, `ProfileScreen.kt` | `UI/*View.swift` |
-| `MentorApp.kt` | `App/RootView.swift` |
-| `MentorViewModelTest.kt` | `MentrixTests/MentorViewModelTests.swift` |
+| `Core/MentorAPI.swift` | запросы к серверу (URLSession) |
+| `Core/Models.swift` | модели данных API |
+| `Core/MentorViewModel.swift` | состояние приложения (`@Observable`) |
+| `Core/Storage.swift` | токен в Связке ключей, остальное в UserDefaults |
+| `Core/Reminders.swift` | локальные уведомления на неделю вперёд |
+| `Core/GoogleSignIn.swift` | вход через Google |
+| `Core/AvatarStore.swift` | фото профиля |
+| `UI/Theme.swift` | цвета, шрифты, общие компоненты |
+| `UI/*View.swift` | экраны |
+| `App/RootView.swift` | навигация между экранами |
+| `MentrixTests/MentorViewModelTests.swift` | тесты (Swift Testing) |
 
-Отличия от Android:
-- Шрифт – системный SF Rounded вместо Manrope из Google Fonts.
+Заметки:
+- Шрифт – системный SF Rounded.
 - Напоминания: iOS не умеет пропускать один день у повторяющегося уведомления, поэтому приложение
   ставит уведомления на 7 дней вперёд и обновляет их при открытии и после засчитанного урока.
 - Нет иконки приложения: добавь картинку 1024×1024 в `Assets.xcassets/AppIcon`.
