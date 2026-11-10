@@ -98,7 +98,8 @@ public struct HttpLlm: LlmClient {
 
     static let maxAttempts = 2
     static let retryDelay: Duration = .milliseconds(700)
-    static let timeout: TimeAmount = .seconds(12)
+    // Общий срок на все попытки: приложение ждёт ответа сервера 30 секунд, и офлайн-ответ должен успеть до этого
+    static let timeout: TimeAmount = .seconds(25)
 
     public init(baseURL: String, apiKey: String, model: String, reasoningEffort: String? = nil, client: HTTPClient = .shared) {
         self.baseURL = baseURL
@@ -192,6 +193,7 @@ public struct HttpLlm: LlmClient {
     // чтобы в логе FallbackLlm была видна настоящая причина.
     private func complete(_ messages: [Message]) async throws -> String {
         let payload = try JSONEncoder().encode(CompletionRequest(model: model, reasoning_effort: reasoningEffort, messages: messages))
+        let deadline = NIODeadline.now() + Self.timeout
         var attempt = 0
         while true {
             attempt += 1
@@ -201,7 +203,7 @@ public struct HttpLlm: LlmClient {
             request.headers.add(name: "Content-Type", value: "application/json")
             request.body = .bytes(ByteBuffer(data: payload))
 
-            let response = try await client.execute(request, timeout: Self.timeout)
+            let response = try await client.execute(request, deadline: deadline)
             let body = try await response.body.collect(upTo: 4 * 1024 * 1024)
             let status = Int(response.status.code)
             if (200..<300).contains(status) {
@@ -209,7 +211,7 @@ public struct HttpLlm: LlmClient {
                 guard let content = decoded.choices.first?.message.content else { throw UpstreamError(message: "Пустой ответ модели") }
                 return content
             }
-            if status == 503 && attempt < Self.maxAttempts {
+            if status == 503 && attempt < Self.maxAttempts && NIODeadline.now() + TimeAmount(Self.retryDelay) < deadline {
                 try await Task.sleep(for: Self.retryDelay)
                 continue
             }
