@@ -1,4 +1,4 @@
-# ИИ-ментор: MVP
+# Mento – ИИ-ментор: MVP
 
 iOS-приложение (Swift + SwiftUI, см. [`ios/README.md`](ios/README.md)) и сервер (Swift + Vapor + PostgreSQL), которые ведут человека по личному плану обучения в IT: миссия на каждый день, проверка ответов ИИ, повторение слабых тем.
 
@@ -6,16 +6,16 @@ iOS-приложение (Swift + SwiftUI, см. [`ios/README.md`](ios/README.md
 
 | Функция | Где в коде |
 |---|---|
-| Вход через Google, вход и регистрация по email/паролю (PBKDF2) и JWT-сессии | `ios/Mentrix/UI/LoginView.swift`, `server/Sources/MentorServer/Accounts.swift`, `POST /api/auth/*` |
+| Вход через Google, вход и регистрация по email/паролю (PBKDF2) и JWT-сессии | `ios/Mento/UI/LoginView.swift`, `server/Sources/MentorServer/Accounts.swift`, `POST /api/auth/*` |
 | F1 Онбординг и выбор направления, смена направления | `OnboardingView.swift`, `POST /api/profile` |
 | F2 План на 8 недель из проверенных источников (42 задания на направление, есть задания с кодом) | `MentorService.swift` (Planner), `Resources/sources.json` |
 | F3 Экран «Сегодня» и миссия дня, сгенерированная ИИ без повторов | `HomeView.swift`, `GET /api/today` |
 | F4 Проверка ответов (текст и код) | `Llm.swift`, `POST /api/answer` |
 | F5 Чат «Застрял»: подсказки без готового ответа | `ChatView.swift`, `POST /api/chat` |
-| F6 Серия занятий и ежедневные напоминания | `MentorService.bumpStreak`, `ios/Mentrix/Core/Reminders.swift` |
+| F6 Серия занятий и ежедневные напоминания | `MentorService.bumpStreak`, `ios/Mento/Core/Reminders.swift` |
 | F7 Перестройка плана: интервальные повторения (1 → 3 → 7 дней) и пересборка после паузы | `MentorService.scheduleReview` |
 | F8 Профиль, настройки (цель, минуты, дни), прогресс, удаление аккаунта | `ProfileView.swift`, `PUT /api/settings`, `DELETE /api/account` |
-| Офлайн-режим: последние данные сохраняются на устройстве | `ios/Mentrix/Core/Storage.swift` |
+| Офлайн-режим: последние данные сохраняются на устройстве | `ios/Mento/Core/Storage.swift` |
 | Хранение в PostgreSQL (или в памяти для разработки) | `Store.swift` |
 | Статистика активности для команды | `GET /admin/stats` |
 
@@ -29,7 +29,7 @@ AUTH_DEV=true swift run mentor-server   # сервер на http://localhost:808
 ```
 
 `AUTH_DEV=true` разрешает вход без аккаунта, без `DATABASE_URL` данные хранятся в памяти.
-Затем открой `ios/Mentrix.xcodeproj`, выбери схему **Mentrix** и симулятор, нажми Run.
+Затем открой `ios/Mento.xcodeproj`, выбери схему **Mento** и симулятор, нажми Run.
 Debug-сборка ходит на `http://localhost:8080/`.
 
 ### С локальной PostgreSQL (данные не пропадают при перезапуске)

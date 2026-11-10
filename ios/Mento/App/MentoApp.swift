@@ -43,7 +43,7 @@ final class AppContainer {
 }
 
 @main
-struct MentrixApp: App {
+struct MentoApp: App {
     @State private var vm: MentorViewModel
     @State private var chat: ChatViewModel
     @Environment(\.scenePhase) private var scenePhase

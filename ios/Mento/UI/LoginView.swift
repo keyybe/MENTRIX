@@ -35,7 +35,7 @@ struct LoginView: View {
                 .frame(width: 88, height: 88)
                 .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 .padding(.bottom, 4)
-            Text("ИИ-ментор").font(.headlineLarge).foregroundStyle(.white)
+            Text("Mento").font(.headlineLarge).foregroundStyle(.white)
             Text("Программирование по 15 минут в день")
                 .font(.bodyLarge)
                 .foregroundStyle(.white.opacity(0.85))

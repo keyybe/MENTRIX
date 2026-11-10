@@ -1,4 +1,4 @@
-# ИИ-ментор для iOS (Swift + SwiftUI)
+# Mento – ИИ-ментор для iOS (Swift + SwiftUI)
 
 iOS-приложение ИИ-ментора. Работает с сервером из `server/` (Swift + Vapor).
 Без сторонних зависимостей, iOS 17+.
@@ -6,13 +6,13 @@ iOS-приложение ИИ-ментора. Работает с серверо
 ## Запуск
 
 1. Запусти сервер из корня репозитория: `cd server && AUTH_DEV=true swift run mentor-server` (проверка: http://localhost:8080/health).
-2. Открой `ios/Mentrix.xcodeproj` в Xcode, выбери схему **Mentrix** и симулятор, нажми Run.
+2. Открой `ios/Mento.xcodeproj` в Xcode, выбери схему **Mento** и симулятор, нажми Run.
    Debug-сборка ходит на `http://localhost:8080/`, а симулятор видит localhost компьютера.
 3. Нажми «Без аккаунта (для разработки)» или зарегистрируйся по email.
 
 Тесты: `⌘U` в Xcode или
 ```bash
-xcodebuild -project ios/Mentrix.xcodeproj -scheme Mentrix -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
+xcodebuild -project ios/Mento.xcodeproj -scheme Mento -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
 ```
 
 ## Настройки
@@ -48,7 +48,7 @@ DEVELOPMENT_TEAM = ABCDE12345
 | `UI/Theme.swift` | цвета, шрифты, общие компоненты |
 | `UI/*View.swift` | экраны |
 | `App/RootView.swift` | навигация между экранами |
-| `MentrixTests/MentorViewModelTests.swift` | тесты (Swift Testing) |
+| `MentoTests/MentorViewModelTests.swift` | тесты (Swift Testing) |
 
 Заметки:
 - Шрифт – системный SF Rounded.

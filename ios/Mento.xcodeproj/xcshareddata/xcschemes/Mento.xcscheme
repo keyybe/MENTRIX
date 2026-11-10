@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA0000000000000000000010"
-               BuildableName = "Mentrix.app"
-               BlueprintName = "Mentrix"
-               ReferencedContainer = "container:Mentrix.xcodeproj">
+               BuildableName = "Mento.app"
+               BlueprintName = "Mento"
+               ReferencedContainer = "container:Mento.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA0000000000000000000030"
-               BuildableName = "MentrixTests.xctest"
-               BlueprintName = "MentrixTests"
-               ReferencedContainer = "container:Mentrix.xcodeproj">
+               BuildableName = "MentoTests.xctest"
+               BlueprintName = "MentoTests"
+               ReferencedContainer = "container:Mento.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000010"
-            BuildableName = "Mentrix.app"
-            BlueprintName = "Mentrix"
-            ReferencedContainer = "container:Mentrix.xcodeproj">
+            BuildableName = "Mento.app"
+            BlueprintName = "Mento"
+            ReferencedContainer = "container:Mento.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA0000000000000000000010"
-            BuildableName = "Mentrix.app"
-            BlueprintName = "Mentrix"
-            ReferencedContainer = "container:Mentrix.xcodeproj">
+            BuildableName = "Mento.app"
+            BlueprintName = "Mento"
+            ReferencedContainer = "container:Mento.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

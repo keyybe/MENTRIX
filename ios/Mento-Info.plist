@@ -7,6 +7,9 @@
 	<string>$(MENTOR_SERVER_URL)</string>
 	<key>GoogleClientID</key>
 	<string>$(GOOGLE_IOS_CLIENT_ID)</string>
+	<!-- нужен, когда Debug-сборка на iPhone ходит на сервер на Mac в локальной сети -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Приложение подключается к серверу ментора на компьютере разработчика.</string>
 	<!-- http://localhost:8080 для разработки в симуляторе -->
 	<key>NSAppTransportSecurity</key>
 	<dict>

@@ -1,6 +1,6 @@
 import Vapor
 
-// DTO API. Названия полей и значения enum совпадают с ios/Mentrix/Core/Models.swift.
+// DTO API. Названия полей и значения enum совпадают с ios/Mento/Core/Models.swift.
 
 public enum ItArea: String, Codable, CaseIterable, Sendable {
     case frontend = "FRONTEND"

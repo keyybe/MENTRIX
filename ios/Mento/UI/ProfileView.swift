@@ -88,7 +88,7 @@ struct ProfileView: View {
                                enabled: !vm.offline) { confirmDelete = true }
                 }
 
-                Text("ИИ-ментор · версия \(AppConfig.version)")
+                Text("Mento · версия \(AppConfig.version)")
                     .font(.bodySmall).foregroundStyle(Palette.inkSoft)
                     .frame(maxWidth: .infinity)
             }

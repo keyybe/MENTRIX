@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Mentrix
+@testable import Mento
 
 // Перенос app/src/test/.../MentorViewModelTest.kt
 
