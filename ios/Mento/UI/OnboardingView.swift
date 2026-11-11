@@ -33,7 +33,10 @@ struct OnboardingView: View {
     @State private var minutes = 20
     @State private var days = 5
     @State private var prefilled = false
-    private let steps = 4
+    @State private var quiz = QuizFlow()
+    private let steps = 5
+    private let quizStep = 2
+    private let goalStep = 3
 
     private var canCancel: Bool { vm.changingArea }
 
@@ -67,20 +70,23 @@ struct OnboardingView: View {
                         Text("Новый план заменит текущий: прогресс начнётся заново.")
                             .font(.bodySmall).foregroundStyle(Palette.inkSoft)
                     }
+                    if vm.submitting && step == steps - 1 {
+                        Text("ИИ-наставник подбирает темы под твою цель и ответы теста…")
+                            .font(.bodySmall).foregroundStyle(Palette.inkSoft)
+                    }
                 }
                 .padding(.bottom, 8)
             }
             .scrollDismissesKeyboard(.interactively)
 
-            PrimaryButton(
-                text: step < steps - 1 ? "Продолжить" : "Составить план",
-                enabled: step != 2 || !effectiveGoal.isEmpty,
-                loading: vm.submitting
-            ) {
-                if step < steps - 1 {
+            PrimaryButton(text: buttonText, enabled: buttonEnabled, loading: vm.submitting || (step == quizStep && quiz.loading)) {
+                if step == quizStep && !quiz.unavailable && !quiz.isLast {
+                    withAnimation(.easeInOut(duration: 0.25)) { quiz.index += 1 }
+                } else if step < steps - 1 {
                     withAnimation(.easeInOut(duration: 0.25)) { step += 1 }
                 } else {
-                    vm.createProfile(ProfileRequest(area: area, goal: effectiveGoal, level: level, minutesPerDay: minutes, daysPerWeek: days))
+                    vm.createProfile(ProfileRequest(area: area, goal: effectiveGoal, level: level, minutesPerDay: minutes,
+                                                    daysPerWeek: days, quiz: quiz.unavailable ? nil : quiz.result))
                 }
             }
             .padding(.vertical, 12)
@@ -88,6 +94,23 @@ struct OnboardingView: View {
         .padding(.horizontal, 20)
         .background(Palette.background.ignoresSafeArea())
         .onAppear(perform: prefill)
+        // вопросы теста зависят от направления: грузим их, когда человек доходит до шага теста
+        .task(id: step == quizStep ? area : nil) {
+            if step == quizStep { await quiz.load(area: area, using: vm) }
+        }
+    }
+
+    private var buttonText: String {
+        if step == quizStep && quiz.unavailable { return "Продолжить без теста" }
+        return step < steps - 1 ? "Продолжить" : "Составить план"
+    }
+
+    private var buttonEnabled: Bool {
+        switch step {
+        case quizStep: quiz.unavailable || quiz.currentAnswered
+        case goalStep: !effectiveGoal.isEmpty
+        default: true
+        }
     }
 
     private var effectiveGoal: String {
@@ -107,7 +130,9 @@ struct OnboardingView: View {
     }
 
     private func back() {
-        if step > 0 {
+        if step == quizStep && quiz.index > 0 {
+            withAnimation(.easeInOut(duration: 0.25)) { quiz.index -= 1 }
+        } else if step > 0 {
             withAnimation(.easeInOut(duration: 0.25)) { step -= 1 }
         } else if canCancel {
             vm.cancelChangeArea()
@@ -129,8 +154,23 @@ struct OnboardingView: View {
                            selected: level == .beginner) { level = .beginner }
                 OptionCard(icon: "paperplane.fill", tint: Palette.indigo, title: "Знаю основы", subtitle: "Пропустим базовые темы",
                            selected: level == .continuing) { level = .continuing }
-            case 2:
-                Question(title: "Какая у тебя цель?", subtitle: "Это поможет держать мотивацию")
+            case quizStep:
+                if quiz.index == 0 || quiz.unavailable {
+                    Question(title: "Мини-тест", subtitle: "Несколько коротких вопросов, чтобы не учить то, что ты уже знаешь")
+                }
+                if quiz.loading {
+                    ProgressView().frame(maxWidth: .infinity).padding(.top, 24)
+                } else if let q = quiz.current {
+                    QuizQuestionView(question: q, index: quiz.index, total: quiz.questions.count,
+                                     selected: quiz.answers[q.id]) { quiz.answers[q.id] = $0 }
+                        .id(q.id)
+                        .transition(.opacity)
+                } else {
+                    Text("Не удалось загрузить вопросы. Можно продолжить без теста.")
+                        .font(.bodyMedium).foregroundStyle(Palette.inkSoft)
+                }
+            case goalStep:
+                Question(title: "Какая у тебя цель?", subtitle: "Под неё ИИ-наставник составит план")
                 ForEach(goalChoices, id: \.title) { c in
                     OptionCard(icon: c.icon, tint: c.tint, title: c.title, subtitle: nil,
                                selected: customGoal.isEmpty && goal == c.title) {

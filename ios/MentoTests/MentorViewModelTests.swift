@@ -42,6 +42,7 @@ private final class FakeBackend: MentorBackend {
     var failWith: Error?
     var evaluation = EvaluationDto(score: 80, passed: true, feedback: "ok", gaps: [], streak: 1)
     var calls = 0
+    var lastSettings: SettingsRequest?
 
     private func check() throws {
         calls += 1
@@ -52,9 +53,15 @@ private final class FakeBackend: MentorBackend {
     func login(_ req: LoginRequest) async throws -> AuthResponse { try check(); return AuthResponse(token: "login-token", userId: "e:1", name: "Аня") }
     func loginGoogle(idToken: String) async throws -> AuthResponse { try check(); return AuthResponse(token: "google-token", userId: "g:1") }
     func loginDev(deviceId: String) async throws -> AuthResponse { try check(); return AuthResponse(token: "dev-token", userId: "dev:\(deviceId)") }
+    func quiz(area: ItArea) async throws -> [QuizQuestionDto] {
+        try check()
+        return [QuizQuestionDto(id: "fe-html", topic: "HTML", question: "Что такое HTML?", options: ["Разметка", "Язык стилей"])]
+    }
     func plan() async throws -> PlanDto? { try check(); return hasProfile ? testPlan : nil }
     func createProfile(_ req: ProfileRequest) async throws -> PlanDto { try check(); hasProfile = true; return testPlan }
-    func updateSettings(_ req: SettingsRequest) async throws -> PlanDto { try check(); var p = testPlan; p.goal = req.goal; return p }
+    func updateSettings(_ req: SettingsRequest) async throws -> PlanDto {
+        try check(); lastSettings = req; var p = testPlan; p.goal = req.goal; return p
+    }
     func today() async throws -> TodayDto { try check(); return testToday }
     func progress() async throws -> ProgressDto { try check(); return testProgress }
     func answer(_ req: AnswerRequest) async throws -> EvaluationDto { try check(); return evaluation }
@@ -130,6 +137,25 @@ struct MentorViewModelTests {
         #expect(vm.hasProfile)
         #expect(vm.plan == testPlan)
         #expect(vm.error == nil)
+    }
+
+    @Test func quizIsLoadedAndOfflineQuizCanBeSkipped() async {
+        let vm = await vm(FakeSession(token: "t"))
+        #expect(await vm.loadQuiz(area: .frontend)?.first?.id == "fe-html")
+        backend.failWith = URLError(.notConnectedToInternet)
+        #expect(await vm.loadQuiz(area: .frontend) == nil)
+        #expect(vm.signedIn)
+    }
+
+    @Test func newGoalRebuildsPlan() async {
+        let vm = await vm(FakeSession(token: "t"))
+        await vm.saveSettings(goal: "Пройти собеседование", minutesPerDay: 20, daysPerWeek: 5).value
+        #expect(backend.lastSettings?.goal == "Пройти собеседование")
+        #expect(vm.notice == "План пересобран под новую цель")
+
+        await vm.saveSettings(goal: testPlan.goal, minutesPerDay: 30, daysPerWeek: 5).value
+        #expect(backend.lastSettings?.minutesPerDay == 30)
+        #expect(vm.notice == "Настройки сохранены")
     }
 
     @Test func expiredSessionSignsOut() async {

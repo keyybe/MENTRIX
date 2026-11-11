@@ -152,7 +152,7 @@ struct ProfileView: View {
         switch edit {
         case .goal:
             GoalSheet(current: plan?.goal ?? "") { save(goal: $0); editing = nil }
-                .presentationDetents([.height(260)])
+                .presentationDetents([.height(300)])
         case .minutes:
             OptionsSheet(title: "Время в день", options: minuteOptions, selected: plan?.minutesPerDay ?? 20,
                          label: { "\($0) минут" }) { save(minutes: $0); editing = nil }
@@ -254,6 +254,8 @@ private struct GoalSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Твоя цель").font(.titleLarge).foregroundStyle(Palette.ink)
             AppTextField(placeholder: "Например, найти первую работу", text: $goal)
+            Text("ИИ-наставник пересоберёт непройденную часть плана под новую цель. Пройденные уроки останутся.")
+                .font(.bodySmall).foregroundStyle(Palette.inkSoft)
             HStack {
                 TonalButton(text: "Отмена", color: Palette.ink, background: Palette.background, fillWidth: true) { dismiss() }
                 TonalButton(text: "Сохранить", enabled: !trimmed.isEmpty && trimmed != current, fillWidth: true) { onSave(trimmed) }

@@ -15,6 +15,9 @@ struct PlanView: View {
                         Text("\(plan.area.title) · \(plan.weeks.count) нед. · цель: \(plan.goal)")
                             .font(.bodyMedium).foregroundStyle(Palette.inkSoft)
                     }
+                    if let summary = plan.summary, !summary.isEmpty {
+                        SummaryCard(text: summary)
+                    }
                     ForEach(plan.weeks) { week in
                         WeekCard(week: week, currentId: currentId, onStart: onStart)
                     }
@@ -23,6 +26,25 @@ struct PlanView: View {
                 .padding(.vertical, 12)
             }
             .background(Palette.background)
+        }
+    }
+}
+
+// Почему план устроен именно так – объяснение ИИ-наставника
+private struct SummaryCard: View {
+    let text: String
+
+    var body: some View {
+        SoftCard(color: Palette.indigoSoft) {
+            HStack(alignment: .top, spacing: 12) {
+                IconTile(icon: "sparkles", tint: .white, background: Palette.indigo, size: 36)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Почему такой план").font(.titleSmall).foregroundStyle(Palette.ink)
+                    Text(text).font(.bodyMedium).foregroundStyle(Palette.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(16)
         }
     }
 }
@@ -47,6 +69,10 @@ private struct WeekCard: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Неделя \(week.index)").font(.labelMedium).foregroundStyle(Palette.inkSoft)
                         Text(week.shortTitle).font(.titleMedium).foregroundStyle(Palette.ink)
+                        if let why = week.why {
+                            Text(why).font(.bodySmall).foregroundStyle(Palette.inkSoft)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     Spacer()
                     Text("\(done)/\(week.missions.count)").font(.labelLarge).foregroundStyle(Palette.inkSoft)

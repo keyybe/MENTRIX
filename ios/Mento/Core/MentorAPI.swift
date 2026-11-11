@@ -21,6 +21,7 @@ protocol MentorBackend: AnyObject {
     func login(_ req: LoginRequest) async throws -> AuthResponse
     func loginGoogle(idToken: String) async throws -> AuthResponse
     func loginDev(deviceId: String) async throws -> AuthResponse
+    func quiz(area: ItArea) async throws -> [QuizQuestionDto]
     func plan() async throws -> PlanDto? // nil – профиля ещё нет (нужен онбординг)
     func createProfile(_ req: ProfileRequest) async throws -> PlanDto
     func updateSettings(_ req: SettingsRequest) async throws -> PlanDto
@@ -53,8 +54,11 @@ final class MentorAPI: MentorBackend {
 
     // 401 превращаем в SessionExpired, понятные ошибки сервера – в ServerMessage.
     // При входе (signIn = true) 401 означает «неверный пароль», а не истёкшую сессию.
-    private func send(_ method: Method, _ path: String, body: (some Encodable)? = Empty?.none, signIn: Bool = false) async throws -> (Data, Int) {
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+    private func send(_ method: Method, _ path: String, query: [URLQueryItem] = [], body: (some Encodable)? = Empty?.none,
+                      signIn: Bool = false) async throws -> (Data, Int) {
+        var url = baseURL.appendingPathComponent(path)
+        if !query.isEmpty { url.append(queryItems: query) }
+        var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let token = token() {
@@ -74,8 +78,9 @@ final class MentorAPI: MentorBackend {
         throw HTTPError(status: status)
     }
 
-    private func call<T: Decodable>(_ method: Method, _ path: String, body: (some Encodable)? = Empty?.none, signIn: Bool = false) async throws -> T {
-        let (data, _) = try await send(method, path, body: body, signIn: signIn)
+    private func call<T: Decodable>(_ method: Method, _ path: String, query: [URLQueryItem] = [], body: (some Encodable)? = Empty?.none,
+                                    signIn: Bool = false) async throws -> T {
+        let (data, _) = try await send(method, path, query: query, body: body, signIn: signIn)
         return try decoder.decode(T.self, from: data)
     }
 
@@ -105,6 +110,10 @@ final class MentorAPI: MentorBackend {
             // сервер отвечает 404 с текстом ошибки, если профиля ещё нет
             return nil
         }
+    }
+
+    func quiz(area: ItArea) async throws -> [QuizQuestionDto] {
+        try await call(.get, "api/quiz", query: [URLQueryItem(name: "area", value: area.rawValue)])
     }
 
     func createProfile(_ req: ProfileRequest) async throws -> PlanDto {

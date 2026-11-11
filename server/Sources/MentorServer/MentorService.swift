@@ -1,7 +1,8 @@
 import Foundation
 import Logging
 
-// Планировщик: работает по правилам и не зависит от ИИ.
+// Планировщик: раскладывает темы из базы по урокам. Порядок тем предлагает ИИ-методист (CourseDraft),
+// без него работают правила: темы по порядку базы, знакомые по мини-тесту – в конце.
 enum Planner {
     private static func pool(_ sources: [Source], _ p: ProfileRequest) -> [(source: Source, task: TaskDef)] {
         sources
@@ -9,22 +10,66 @@ enum Planner {
             .flatMap { s in s.tasks.map { (s, $0) } }
     }
 
-    static func build(_ sources: [Source], _ p: ProfileRequest) -> [Mission] {
-        pool(sources, p)
-            .prefix(MentorService.weeks * p.daysPerWeek)
-            .map { Mission(sourceId: $0.source.id, task: $0.task, minutes: p.minutesPerDay) }
+    static func key(_ sourceId: String, _ task: TaskDef) -> String { "\(sourceId)\u{0}\(task.title)" }
+
+    // Темы, по которым остались непройденные задания: их ИИ-методист и расставляет по порядку
+    static func topics(_ sources: [Source], _ p: ProfileRequest, known: [String]?, used: Set<String>) -> [CourseTopic] {
+        var order: [String] = []
+        var left: [String: Int] = [:]
+        var byId: [String: Source] = [:]
+        for (s, t) in pool(sources, p) where !used.contains(key(s.id, t)) {
+            if left[s.id] == nil { order.append(s.id); byId[s.id] = s }
+            left[s.id, default: 0] += 1
+        }
+        return order.compactMap { id in
+            guard let s = byId[id] else { return nil }
+            let isKnown: Bool? = if let known, s.quiz != nil { known.contains(id) } else { nil }
+            return CourseTopic(id: id, title: s.title, basic: s.basic, lessons: left[id] ?? 0, known: isKnown)
+        }
+    }
+
+    // count уроков из ещё не пройденных заданий: сначала темы черновика ИИ (в его порядке и объёме),
+    // остаток добирается по правилам. Темы, которых нет в базе направления, отбрасываются.
+    static func lessons(_ sources: [Source], _ p: ProfileRequest, known: [String]?, draft: CourseDraft?,
+                        used: Set<String>, count: Int) -> [Mission] {
+        let free = pool(sources, p).filter { !used.contains(key($0.source.id, $0.task)) }
+        var taken = Set<String>()
+        var result: [Mission] = []
+        func add(_ s: Source, _ t: TaskDef, _ reason: String?) {
+            guard result.count < count, taken.insert(key(s.id, t)).inserted else { return }
+            var m = Mission(sourceId: s.id, task: t, minutes: p.minutesPerDay)
+            m.reason = reason
+            result.append(m)
+        }
+
+        var seen = Set<String>()
+        for topic in draft?.topics ?? [] where seen.insert(topic.id).inserted {
+            let tasks = free.filter { $0.source.id == topic.id }
+            let limit = min(max(topic.lessons ?? tasks.count, 1), tasks.count)
+            let reason = topic.reason?.trimmed.isEmpty == false ? topic.reason : nil
+            for (s, t) in tasks.prefix(limit) { add(s, t, reason) }
+        }
+        // правила: сначала незнакомые темы, знакомые по мини-тесту – в конце (их отрежет длина плана)
+        let isKnown = { (s: Source) in known?.contains(s.id) ?? false }
+        for (s, t) in free.filter({ !isKnown($0.source) }) + free.filter({ isKnown($0.source) }) { add(s, t, nil) }
+        return result
+    }
+
+    // Объяснение плана, если ИИ-методист недоступен
+    static func offlineSummary(_ sources: [Source], known: [String]?) -> String {
+        let titles = sources.filter { known?.contains($0.id) ?? false }.map(\.title)
+        return titles.isEmpty
+            ? "Темы идут от простого к сложному: каждая следующая опирается на предыдущую."
+            : "Темы идут от простого к сложному. То, что ты уже знаешь по мини-тесту (\(titles.joined(separator: ", "))), стоит в конце плана."
     }
 
     // Больше занятий в неделю – добираем в план ещё не использованные задания из базы
     static func extend(_ sources: [Source], _ st: inout UserState) {
         let target = MentorService.weeks * st.profile.daysPerWeek
         let lessons = st.missions.filter { !$0.review }
-        let used = Set(lessons.map { "\($0.sourceId)\u{0}\($0.task.title)" })
-        let minutes = st.profile.minutesPerDay
-        st.missions += pool(sources, st.profile)
-            .filter { !used.contains("\($0.source.id)\u{0}\($0.task.title)") }
-            .prefix(max(target - lessons.count, 0))
-            .map { Mission(sourceId: $0.source.id, task: $0.task, minutes: minutes) }
+        let used = Set(lessons.map { key($0.sourceId, $0.task) })
+        st.missions += Self.lessons(sources, st.profile, known: st.known, draft: nil, used: used,
+                                    count: max(target - lessons.count, 0))
     }
 
     static func reflow(_ missions: inout [Mission], daysPerWeek: Int) {
@@ -126,7 +171,7 @@ public final class MentorService: Sendable {
 
                 let generated = (try? await target.client.generateTask(
                     base: target.base, topic: target.topic, level: target.profile.level,
-                    area: target.profile.area, previous: target.previous
+                    area: target.profile.area, goal: target.profile.goal, previous: target.previous
                 )) ?? target.base
 
                 _ = try? await withUser(userId) { st in
@@ -181,14 +226,69 @@ public final class MentorService: Sendable {
         profile.daysPerWeek = Self.clamp(req.daysPerWeek, 1...7)
         profile.minutesPerDay = Self.clamp(req.minutesPerDay, Self.minMinutes...Self.maxMinutes)
 
-        var missions = Planner.build(allSources, profile)
-        if missions.isEmpty { throw APIError.badRequest("Для выбранной области пока нет материалов") }
-        Planner.reflow(&missions, daysPerWeek: profile.daysPerWeek)
-        let st = UserState(profile: profile, missions: missions, lastActive: today())
+        let known = req.quiz.map { score($0, area: profile.area) }
+        profile.quiz = nil // ответы не храним, только результат – known
+
+        let now = today()
+        var st = UserState(profile: profile, missions: [], lastActive: now)
+        st.known = known
+        // ИИ-методист составляет план, пока профиль ещё не сохранён: человек ждёт этот ответ на экране онбординга
+        let client = llmFor(&st)
+        let composed = await compose(st, client: client, keep: [])
+        if composed.missions.isEmpty { throw APIError.badRequest("Для выбранной области пока нет материалов") }
+        st.missions = composed.missions
+        st.summary = composed.summary
+        Planner.reflow(&st.missions, daysPerWeek: profile.daysPerWeek)
         try await locks.withLock(userId) { try await store.save(userId, st) }
         try await event(userId, .profile)
         await pregenerate(userId)
         return try planDto(st)
+    }
+
+    // Вопросы мини-теста по темам направления, без правильных ответов
+    public func quiz(_ area: ItArea) -> [QuizQuestionDto] {
+        allSources.filter { $0.area == area }.compactMap { s in
+            s.quiz.map { QuizQuestionDto(id: s.id, topic: s.title, question: $0.question, options: $0.options) }
+        }
+    }
+
+    // id тем, на вопросы по которым дан верный ответ
+    private func score(_ answers: [QuizAnswer], area: ItArea) -> [String] {
+        answers.compactMap { a in
+            guard let s = sources[a.id], s.area == area, let q = s.quiz, a.option == q.answer else { return nil }
+            return s.id
+        }
+    }
+
+    // План (или его непройденная часть) от ИИ-методиста. keep – миссии, которые остаются в плане:
+    // их задания повторно не ставим. Если модель недоступна или ответила мусором – работают правила.
+    private func compose(_ st: UserState, client: any LlmClient, keep: [Mission]) async -> (missions: [Mission], summary: String) {
+        let p = st.profile
+        let lessonsKept = keep.filter { !$0.review }
+        let used = Set(lessonsKept.map { Planner.key($0.sourceId, $0.task) })
+        let count = max(Self.weeks * p.daysPerWeek - lessonsKept.count, 0)
+        let topics = Planner.topics(allSources, p, known: st.known, used: used)
+        if topics.isEmpty || count == 0 { return ([], st.summary ?? Planner.offlineSummary(allSources, known: st.known)) }
+
+        var done: [String] = []
+        for m in lessonsKept where m.status == .done {
+            if let title = sources[m.sourceId]?.title, !done.contains(title) { done.append(title) }
+        }
+        let request = CourseRequest(profile: p, topics: topics, lessons: count, done: done, gaps: st.gaps)
+        let draft = (try? await client.planCourse(request)) ?? nil
+        let missions = Planner.lessons(allSources, p, known: st.known, draft: draft, used: used, count: count)
+        let summary = draft.map(\.summary).flatMap { $0.isEmpty ? nil : $0 } ?? Planner.offlineSummary(allSources, known: st.known)
+        return (missions, summary)
+    }
+
+    // Новые цель или результаты теста: пройденное, повторения и начатые уроки остаются, остальное ИИ собирает заново
+    private func replan(_ st: inout UserState) async {
+        let keep = st.missions.filter { $0.status == .done || $0.review || $0.attempts > 0 }
+        let client = llmFor(&st)
+        let composed = await compose(st, client: client, keep: keep)
+        st.missions = keep + composed.missions
+        st.summary = composed.summary
+        st.version += 1
     }
 
     public func plan(_ userId: String) async throws -> PlanDto {
@@ -198,13 +298,20 @@ public final class MentorService: Sendable {
     public func updateSettings(_ userId: String, _ req: SettingsRequest) async throws -> PlanDto {
         try await withUser(userId) { st in
             if req.goal.trimmed.isEmpty { throw APIError.badRequest("Цель не указана") }
-            st.profile.goal = String(req.goal.trimmed.prefix(200))
+            let goal = String(req.goal.trimmed.prefix(200))
+            let goalChanged = goal != st.profile.goal
+            st.profile.goal = goal
             st.profile.minutesPerDay = Self.clamp(req.minutesPerDay, Self.minMinutes...Self.maxMinutes)
             st.profile.daysPerWeek = Self.clamp(req.daysPerWeek, 1...7)
+            if let quiz = req.quiz { st.known = score(quiz, area: st.profile.area) }
             for i in st.missions.indices where st.missions[i].status == .todo {
                 st.missions[i].minutes = st.profile.minutesPerDay
             }
-            Planner.extend(allSources, &st)
+            if goalChanged || req.quiz != nil {
+                await replan(&st)
+            } else {
+                Planner.extend(allSources, &st)
+            }
             Planner.reflow(&st.missions, daysPerWeek: st.profile.daysPerWeek)
             return try planDto(st)
         }
@@ -386,14 +493,22 @@ public final class MentorService: Sendable {
             if byWeek[m.week] == nil { order.append(m.week) }
             byWeek[m.week, default: []].append(m)
         }
+        var lastWhy: String?
         let weeks = try order.sorted().map { w in
             let ms = byWeek[w] ?? []
             let title = try ms.first.map { "Неделя \(w): \(try source($0).title)" } ?? "Неделя \(w)"
-            return WeekDto(index: w, title: title, missions: try ms.map(dto))
+            // тема на несколько недель подряд – объяснение только у первой
+            let reason = ms.first(where: { !$0.review && $0.reason != nil })?.reason
+            let why = reason == lastWhy ? nil : reason
+            if reason != nil { lastWhy = reason }
+            return WeekDto(index: w, title: title, why: why, missions: try ms.map(dto))
         }
         let p = st.profile
+        let known = allSources.filter { st.known?.contains($0.id) ?? false }.map(\.title)
         return PlanDto(version: st.version, area: p.area, goal: p.goal, weeks: weeks,
-                       level: p.level, minutesPerDay: p.minutesPerDay, daysPerWeek: p.daysPerWeek)
+                       level: p.level, minutesPerDay: p.minutesPerDay, daysPerWeek: p.daysPerWeek,
+                       summary: st.summary, quizTaken: st.known != nil, known: known,
+                       quizTotal: quiz(p.area).count)
     }
 }
 

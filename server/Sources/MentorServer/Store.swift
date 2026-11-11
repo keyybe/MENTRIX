@@ -19,6 +19,7 @@ public struct Mission: Codable, Sendable {
     public var pregenerating = false // задание сейчас генерируется в фоне
     public var notBefore: Day?        // повторение откроется не раньше этой даты (интервальное повторение)
     public var reviewStage = 0        // 0 – обычная миссия, 1..n – номер повторения
+    public var reason: String?        // зачем эта тема в плане (пишет ИИ-методист)
 
     public init(id: String = newId(), sourceId: String, task: TaskDef, minutes: Int, review: Bool = false,
                 taskGenerated: Bool = false, notBefore: Day? = nil, reviewStage: Int = 0) {
@@ -42,6 +43,7 @@ public struct Mission: Codable, Sendable {
         pregenerating = try c.decodeIfPresent(Bool.self, forKey: .pregenerating) ?? false
         notBefore = try c.decodeIfPresent(Day.self, forKey: .notBefore)
         reviewStage = try c.decodeIfPresent(Int.self, forKey: .reviewStage) ?? 0
+        reason = try c.decodeIfPresent(String.self, forKey: .reason)
     }
 
     // Миссию можно открыть сегодня: она не выполнена и срок повторения наступил
@@ -61,6 +63,8 @@ public struct UserState: Codable, Sendable {
     public var llmDay: Day?             // дневной лимит запросов к внешней модели
     public var llmCalls = 0
     public var doneDates: [String] = [] // дни (yyyy-MM-dd) с засчитанным уроком – для полоски недели
+    public var known: [String]?         // id тем, которые человек знает по мини-тесту; nil – тест не проходил
+    public var summary: String?         // объяснение плана от ИИ-методиста
 
     public init(profile: ProfileRequest, missions: [Mission], lastActive: Day) {
         self.profile = profile; self.missions = missions; self.lastActive = lastActive
@@ -78,6 +82,8 @@ public struct UserState: Codable, Sendable {
         llmDay = try c.decodeIfPresent(Day.self, forKey: .llmDay)
         llmCalls = try c.decodeIfPresent(Int.self, forKey: .llmCalls) ?? 0
         doneDates = try c.decodeIfPresent([String].self, forKey: .doneDates) ?? []
+        known = try c.decodeIfPresent([String].self, forKey: .known)
+        summary = try c.decodeIfPresent(String.self, forKey: .summary)
     }
 }
 

@@ -34,6 +34,25 @@ nonisolated struct ProfileRequest: Codable, Equatable, Sendable {
     var level: Level
     var minutesPerDay: Int
     var daysPerWeek: Int
+    var quiz: [QuizAnswer]? = nil // ответы мини-теста; nil – тест пропущен
+}
+
+// ---------- Мини-тест ----------
+
+// Вопрос по теме направления. Правильный ответ знает только сервер.
+nonisolated struct QuizQuestionDto: Codable, Equatable, Sendable, Identifiable {
+    var id: String
+    var topic: String
+    var question: String
+    var options: [String]
+}
+
+// option – номер выбранного варианта, -1 – «Не знаю»
+nonisolated struct QuizAnswer: Codable, Equatable, Sendable {
+    var id: String
+    var option: Int
+
+    static let dontKnow = -1
 }
 
 nonisolated struct SourceRef: Codable, Equatable, Sendable {
@@ -83,6 +102,7 @@ nonisolated struct WeekDto: Codable, Equatable, Sendable, Identifiable {
     var index: Int
     var title: String
     var missions: [MissionDto]
+    var why: String? = nil // зачем эта неделя для цели (пишет ИИ)
 
     var id: Int { index }
 
@@ -101,11 +121,13 @@ nonisolated struct PlanDto: Codable, Equatable, Sendable {
     var level: Level = .beginner
     var minutesPerDay: Int = 30
     var daysPerWeek: Int = 5
+    var summary: String? = nil  // почему план устроен именно так
 
     init(version: Int, area: ItArea, goal: String, weeks: [WeekDto],
-         level: Level = .beginner, minutesPerDay: Int = 30, daysPerWeek: Int = 5) {
+         level: Level = .beginner, minutesPerDay: Int = 30, daysPerWeek: Int = 5, summary: String? = nil) {
         self.version = version; self.area = area; self.goal = goal; self.weeks = weeks
         self.level = level; self.minutesPerDay = minutesPerDay; self.daysPerWeek = daysPerWeek
+        self.summary = summary
     }
 
     init(from decoder: Decoder) throws {
@@ -117,6 +139,7 @@ nonisolated struct PlanDto: Codable, Equatable, Sendable {
         level = try c.decodeIfPresent(Level.self, forKey: .level) ?? .beginner
         minutesPerDay = try c.decodeIfPresent(Int.self, forKey: .minutesPerDay) ?? 30
         daysPerWeek = try c.decodeIfPresent(Int.self, forKey: .daysPerWeek) ?? 5
+        summary = try c.decodeIfPresent(String.self, forKey: .summary)
     }
 }
 
@@ -210,6 +233,7 @@ nonisolated struct AuthResponse: Codable, Sendable {
 
 // ---------- Настройки ----------
 
+// Новая цель – сервер пересобирает непройденную часть плана
 nonisolated struct SettingsRequest: Codable, Sendable {
     var goal: String
     var minutesPerDay: Int

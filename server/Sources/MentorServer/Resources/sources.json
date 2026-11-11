@@ -2,6 +2,7 @@
   {
     "id": "fe-html", "title": "HTML: структура страницы", "area": "FRONTEND", "basic": true, "minutes": 15,
     "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content",
+    "quiz": {"question": "За что на странице отвечает HTML?", "options": ["Структура и содержимое", "Цвета и шрифты", "Логика кнопок", "Хранение данных на сервере"], "answer": 0},
     "tasks": [
       { "title": "Что такое тег", "prompt": "Что такое тег в HTML? Приведи один пример.", "keywords": ["тег", "<p>|<h1>|<div>|<a>|<img|<br|<html|<body|<head"] },
       { "title": "head и body", "prompt": "Что пишут в head, а что в body?", "keywords": ["head", "body"] },
@@ -15,6 +16,7 @@
   {
     "id": "fe-css", "title": "CSS: оформление", "area": "FRONTEND", "basic": true, "minutes": 15,
     "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics",
+    "quiz": {"question": "Какое свойство CSS меняет цвет текста?", "options": ["background", "font-size", "color", "border"], "answer": 2},
     "tasks": [
       { "title": "Зачем CSS", "prompt": "Для чего нужен CSS?", "keywords": ["оформлен|стил|внешн|вид|цвет"] },
       { "title": "Класс", "prompt": "Как в CSS выбрать элемент по классу?", "keywords": ["точк|.", "класс"] },
@@ -28,6 +30,7 @@
   {
     "id": "fe-js", "title": "JavaScript: основы", "area": "FRONTEND", "basic": true, "minutes": 15,
     "url": "https://learn.javascript.ru/first-steps",
+    "quiz": {"question": "Чем const отличается от let?", "options": ["const работает быстрее", "const нельзя переназначить", "let только для чисел", "Ничем"], "answer": 1},
     "tasks": [
       { "title": "let и const", "prompt": "Чем let отличается от const?", "keywords": ["const", "let", "нельзя|изменить|поменять|переприсво"] },
       { "title": "Переменная", "prompt": "Напиши переменную name со значением \"Аня\".", "keywords": ["let|const", "name", "аня"], "code": true },
@@ -41,6 +44,7 @@
   {
     "id": "fe-dom", "title": "Работа с DOM", "area": "FRONTEND", "basic": false, "minutes": 15,
     "url": "https://learn.javascript.ru/document",
+    "quiz": {"question": "Что вернёт document.querySelector('.btn')?", "options": ["Первый элемент с классом btn", "Все элементы с классом btn", "Текст кнопки", "Всегда ошибку"], "answer": 0},
     "tasks": [
       { "title": "Что такое DOM", "prompt": "Что такое DOM простыми словами?", "keywords": ["дерев|структур|модель", "страниц|документ|элемент"] },
       { "title": "Найти элемент", "prompt": "Каким методом найти элемент по CSS-селектору?", "keywords": ["queryselector"] },
@@ -54,6 +58,7 @@
   {
     "id": "fe-react", "title": "React: компоненты", "area": "FRONTEND", "basic": false, "minutes": 15,
     "url": "https://react.dev/learn",
+    "quiz": {"question": "Где в React хранить данные, которые меняются, например счётчик?", "options": ["В обычной переменной", "В props", "В CSS", "В useState"], "answer": 3},
     "tasks": [
       { "title": "Компонент", "prompt": "Что такое компонент в React?", "keywords": ["функци|часть|кусок|блок", "интерфейс|ui|экран|страниц"] },
       { "title": "props", "prompt": "Зачем нужны props?", "keywords": ["передат|передава", "данн|значени"] },
@@ -67,6 +72,7 @@
   {
     "id": "fe-fetch", "title": "Запросы к API: fetch", "area": "FRONTEND", "basic": false, "minutes": 15,
     "url": "https://learn.javascript.ru/fetch",
+    "quiz": {"question": "Что возвращает fetch?", "options": ["Сразу готовый JSON", "Promise с ответом сервера", "HTML-страницу", "Ничего"], "answer": 1},
     "tasks": [
       { "title": "fetch", "prompt": "Для чего нужна функция fetch?", "keywords": ["запрос|загруз|получ", "сервер|данн"] },
       { "title": "JSON", "prompt": "Как превратить ответ fetch в объект?", "keywords": ["json()"] },
@@ -81,6 +87,7 @@
   {
     "id": "be-http", "title": "HTTP и REST", "area": "BACKEND", "basic": true, "minutes": 15,
     "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview",
+    "quiz": {"question": "Какой код ответа значит «не найдено»?", "options": ["200", "500", "404", "301"], "answer": 2},
     "tasks": [
       { "title": "Что такое HTTP", "prompt": "Что такое HTTP простыми словами?", "keywords": ["протокол|правил|способ", "браузер|клиент", "сервер"] },
       { "title": "GET и POST", "prompt": "Чем GET отличается от POST?", "keywords": ["get", "post", "получ|отправ|созда"] },
@@ -94,6 +101,7 @@
   {
     "id": "be-kotlin", "title": "Kotlin: основы для бэкенда", "area": "BACKEND", "basic": true, "minutes": 15,
     "url": "https://kotlinlang.org/docs/basic-syntax.html",
+    "quiz": {"question": "Чем val отличается от var в Kotlin?", "options": ["val нельзя переназначить", "val только для строк", "var нельзя менять", "Ничем"], "answer": 0},
     "tasks": [
       { "title": "val и var", "prompt": "Чем val отличается от var?", "keywords": ["val", "var", "нельзя|изменить|поменять|переприсво"] },
       { "title": "Переменная", "prompt": "Напиши неизменяемую переменную age со значением 18.", "keywords": ["val", "age", "18"], "code": true },
@@ -107,6 +115,7 @@
   {
     "id": "be-ktor", "title": "Ktor: первый сервер", "area": "BACKEND", "basic": true, "minutes": 15,
     "url": "https://ktor.io/docs/server-create-a-new-project.html",
+    "quiz": {"question": "Что такое маршрут (route) на сервере?", "options": ["Таблица в базе данных", "Файл стилей", "Пароль пользователя", "Обработчик для адреса и метода запроса"], "answer": 3},
     "tasks": [
       { "title": "Что такое Ktor", "prompt": "Что такое Ktor?", "keywords": ["фреймворк|библиотек|инструмент", "сервер"] },
       { "title": "Маршрут", "prompt": "Что такое маршрут (route) на сервере?", "keywords": ["адрес|путь|url", "обработ|ответ|запрос"] },
@@ -120,6 +129,7 @@
   {
     "id": "be-sql", "title": "SQL и PostgreSQL", "area": "BACKEND", "basic": false, "minutes": 15,
     "url": "https://www.postgresql.org/docs/current/tutorial.html",
+    "quiz": {"question": "Какая команда SQL выбирает данные из таблицы?", "options": ["INSERT", "SELECT", "DELETE", "CREATE"], "answer": 1},
     "tasks": [
       { "title": "Таблица", "prompt": "Что такое таблица в базе данных?", "keywords": ["строк|запис", "столб|колон|пол"] },
       { "title": "SELECT", "prompt": "Напиши запрос, который выбирает все строки из таблицы users.", "keywords": ["select", "*|все", "from users"], "code": true },
@@ -133,6 +143,7 @@
   {
     "id": "be-auth", "title": "Аутентификация", "area": "BACKEND", "basic": false, "minutes": 15,
     "url": "https://jwt.io/introduction",
+    "quiz": {"question": "Как правильно хранить пароли пользователей?", "options": ["Хешем с солью", "Открытым текстом", "В токене", "В логах сервера"], "answer": 0},
     "tasks": [
       { "title": "Вход", "prompt": "Что такое аутентификация?", "keywords": ["провер|подтвер", "кто|личност|пользовател"] },
       { "title": "Права", "prompt": "Что такое авторизация?", "keywords": ["прав|доступ|разреш"] },
@@ -146,6 +157,7 @@
   {
     "id": "be-tests", "title": "Тестирование API", "area": "BACKEND", "basic": false, "minutes": 15,
     "url": "https://ktor.io/docs/server-testing.html",
+    "quiz": {"question": "Зачем нужны автотесты?", "options": ["Ускорять сервер", "Хранить данные", "Автоматически проверять, что код работает", "Рисовать интерфейс"], "answer": 2},
     "tasks": [
       { "title": "Зачем тесты", "prompt": "Зачем писать тесты?", "keywords": ["ошибк|баг|провер|сломал"] },
       { "title": "Юнит-тест", "prompt": "Что проверяет юнит-тест?", "keywords": ["маленьк|одн|часть|функци|модул"] },
@@ -160,6 +172,7 @@
   {
     "id": "mo-kotlin", "title": "Kotlin: основы", "area": "MOBILE", "basic": true, "minutes": 15,
     "url": "https://kotlinlang.org/docs/getting-started.html",
+    "quiz": {"question": "Что означает тип String? в Kotlin?", "options": ["Строка из одного символа", "Строка, которая может быть null", "Неизвестный тип", "Всегда пустая строка"], "answer": 1},
     "tasks": [
       { "title": "val и var", "prompt": "Чем val отличается от var?", "keywords": ["val", "var", "нельзя|изменить|поменять|переприсво"] },
       { "title": "Null-безопасность", "prompt": "Что означает знак ? в типе String?", "keywords": ["null"] },
@@ -173,6 +186,7 @@
   {
     "id": "mo-studio", "title": "Android Studio и структура проекта", "area": "MOBILE", "basic": true, "minutes": 15,
     "url": "https://developer.android.com/studio/intro",
+    "quiz": {"question": "Где в Android-проекте объявляют разрешения приложения?", "options": ["AndroidManifest.xml", "build.gradle", "MainActivity", "res/values"], "answer": 0},
     "tasks": [
       { "title": "Android Studio", "prompt": "Что такое Android Studio?", "keywords": ["программ|среда|ide|инструмент", "разработ|приложени"] },
       { "title": "Эмулятор", "prompt": "Зачем нужен эмулятор?", "keywords": ["телефон|устройств", "запуск|провер|тест"] },
@@ -186,6 +200,7 @@
   {
     "id": "mo-compose", "title": "Jetpack Compose: основы", "area": "MOBILE", "basic": true, "minutes": 15,
     "url": "https://developer.android.com/develop/ui/compose/tutorial",
+    "quiz": {"question": "Как выглядит экран в Jetpack Compose?", "options": ["Класс Activity", "XML-файл разметки", "Метод onCreate", "Функция с аннотацией @Composable"], "answer": 3},
     "tasks": [
       { "title": "Composable", "prompt": "Что такое Composable-функция?", "keywords": ["функци", "интерфейс|ui|экран|рису|элемент"] },
       { "title": "Текст", "prompt": "Напиши Compose-код, который показывает текст «Привет».", "keywords": ["text(", "привет"], "code": true },
@@ -199,6 +214,7 @@
   {
     "id": "mo-state", "title": "Состояние в Compose", "area": "MOBILE", "basic": false, "minutes": 15,
     "url": "https://developer.android.com/develop/ui/compose/state",
+    "quiz": {"question": "Зачем в Compose нужен remember?", "options": ["Запомнить пароль", "Записать файл на диск", "Сохранить значение между перерисовками", "Ускорить сеть"], "answer": 2},
     "tasks": [
       { "title": "Состояние", "prompt": "Что такое состояние (state) экрана?", "keywords": ["данн|значени", "меня|изменя|показ"] },
       { "title": "remember", "prompt": "Зачем нужен remember?", "keywords": ["запомин|сохран|помнит", "перерис|перекомпоз|recompos"] },
@@ -212,6 +228,7 @@
   {
     "id": "mo-vm", "title": "ViewModel", "area": "MOBILE", "basic": false, "minutes": 15,
     "url": "https://developer.android.com/topic/libraries/architecture/viewmodel",
+    "quiz": {"question": "Зачем нужна ViewModel?", "options": ["Рисовать кнопки", "Держать состояние экрана, оно переживает поворот", "Хранить картинки", "Подключаться к Bluetooth"], "answer": 1},
     "tasks": [
       { "title": "Зачем ViewModel", "prompt": "Зачем нужна ViewModel?", "keywords": ["хран|данн|логик", "поворот|экран|переживает"] },
       { "title": "Поворот", "prompt": "Что происходит с данными ViewModel при повороте экрана?", "keywords": ["сохраня|остают|не теря|живут"] },
@@ -225,6 +242,7 @@
   {
     "id": "mo-data", "title": "Сеть и данные", "area": "MOBILE", "basic": false, "minutes": 15,
     "url": "https://developer.android.com/training/data-storage/room",
+    "quiz": {"question": "Для чего в Android библиотека Room?", "options": ["Локальная база данных", "Сетевые запросы", "Анимации", "Навигация"], "answer": 0},
     "tasks": [
       { "title": "Room", "prompt": "Что такое Room?", "keywords": ["баз|database|sqlite", "данн|хран"] },
       { "title": "Главный поток", "prompt": "Почему сеть нельзя вызывать в главном потоке?", "keywords": ["завис|тормоз|блокир|подвис|anr"] },

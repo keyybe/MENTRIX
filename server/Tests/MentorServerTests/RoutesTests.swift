@@ -175,6 +175,28 @@ import VaporTesting
         }
     }
 
+    @Test func quizNeedsLoginAndHidesAnswers() async throws {
+        try await withServer(devLogin: true) { app in
+            try await app.testing().test(.GET, "api/quiz?area=BACKEND") { res async throws in
+                #expect(res.status == .unauthorized)
+            }
+            var token = ""
+            try await app.testing().test(.POST, "api/auth/dev", beforeRequest: { req in
+                try req.content.encode(DevAuthRequest(deviceId: "device-123456"))
+            }) { res async throws in
+                token = try res.content.decode(AuthResponse.self).token
+            }
+            try await app.testing().test(.GET, "api/quiz?area=BACKEND", headers: bearer(token)) { res async throws in
+                #expect(res.status == .ok)
+                #expect(try res.content.decode([QuizQuestionDto].self).count == 6)
+                #expect(!res.body.string.contains("\"answer\""), "правильные ответы не уходят в приложение")
+            }
+            try await app.testing().test(.GET, "api/quiz?area=DESIGN", headers: bearer(token)) { res async throws in
+                #expect(res.status == .badRequest)
+            }
+        }
+    }
+
     @Test func googleLoginIssuesToken() async throws {
         try await withServer { app in
             try await app.testing().test(.POST, "api/auth/google", beforeRequest: { req in

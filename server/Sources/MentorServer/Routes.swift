@@ -79,6 +79,14 @@ public func configure(
     api.put("settings") { req async throws -> PlanDto in
         try await service.updateSettings(try await userId(req), try body(req, SettingsRequest.self))
     }
+    // GET /api/quiz?area=FRONTEND – вопросы мини-теста по направлению
+    api.get("quiz") { req async throws -> [QuizQuestionDto] in
+        _ = try await userId(req)
+        guard let raw = req.query[String.self, at: "area"], let area = ItArea(rawValue: raw) else {
+            throw APIError.badRequest("Неизвестное направление")
+        }
+        return service.quiz(area)
+    }
     api.get("plan") { req async throws -> PlanDto in
         try await service.plan(try await userId(req))
     }

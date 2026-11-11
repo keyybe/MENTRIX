@@ -254,15 +254,30 @@ final class MentorViewModel {
 
     // ---------- Настройки ----------
 
+    // Новая цель – сервер пересобирает непройденную часть плана
     @discardableResult
     func saveSettings(goal: String, minutesPerDay: Int, daysPerWeek: Int) -> Task<Void, Never> {
-        launchSafely("Не удалось сохранить настройки.") {
+        let trimmed = goal.trimmingCharacters(in: .whitespaces)
+        let replans = trimmed != plan?.goal
+        return launchSafely("Не удалось сохранить настройки.") {
             self.submitting = true
             self.error = nil
             _ = try await self.api.updateSettings(SettingsRequest(
-                goal: goal.trimmingCharacters(in: .whitespaces), minutesPerDay: minutesPerDay, daysPerWeek: daysPerWeek))
+                goal: trimmed, minutesPerDay: minutesPerDay, daysPerWeek: daysPerWeek))
             try await self.refresh()
-            self.notice = "Настройки сохранены"
+            self.notice = replans ? "План пересобран под новую цель" : "Настройки сохранены"
+        }
+    }
+
+    // Вопросы мини-теста; nil – не удалось загрузить (тогда тест можно пропустить)
+    func loadQuiz(area: ItArea) async -> [QuizQuestionDto]? {
+        do {
+            return try await api.quiz(area: area)
+        } catch is SessionExpired {
+            signOut(notice: "Сессия истекла, войди снова.")
+            return nil
+        } catch {
+            return nil
         }
     }
 

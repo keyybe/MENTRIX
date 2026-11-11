@@ -27,6 +27,13 @@ public struct TaskDef: Codable, Equatable, Sendable {
     }
 }
 
+// Вопрос мини-теста по теме источника. answer – номер правильного варианта в options.
+public struct QuizDef: Codable, Equatable, Sendable {
+    public var question: String
+    public var options: [String]
+    public var answer: Int
+}
+
 // Проверенный источник из базы. basic = true – для новичков, продолжающие такие пропускают.
 public struct Source: Codable, Sendable {
     public var id: String
@@ -35,6 +42,7 @@ public struct Source: Codable, Sendable {
     public var area: ItArea
     public var basic: Bool
     public var minutes: Int
+    public var quiz: QuizDef?
     public var tasks: [TaskDef]
 }
 

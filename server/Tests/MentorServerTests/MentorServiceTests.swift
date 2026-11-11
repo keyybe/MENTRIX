@@ -24,6 +24,11 @@ import Testing
         for s in sources {
             #expect(s.url.hasPrefix("https://"), "\(s.id): ссылка должна быть https")
             #expect(!s.tasks.isEmpty, "\(s.id): нет заданий")
+            if let q = s.quiz {
+                #expect(q.options.count >= 2 && q.options.indices.contains(q.answer), "\(s.id): неверный вопрос мини-теста")
+            } else {
+                Issue.record("\(s.id): нет вопроса мини-теста")
+            }
             for t in s.tasks {
                 #expect(!t.title.trimmed.isEmpty && !t.prompt.trimmed.isEmpty, "\(s.id): пустое задание")
                 #expect(!t.keywords.isEmpty, "\(s.id) / \(t.title): нет ключевых понятий")
@@ -228,6 +233,102 @@ import Testing
         #expect(after.missions.filter { $0.status == .done }.allSatisfy { $0.minutes == 20 })
         #expect(Set(after.missions.map(\.id)).count == after.missions.count, "задания не дублируются")
         #expect(after.weeks.allSatisfy { $0.missions.count <= 5 })
+    }
+
+    // ---------- Мини-тест и ИИ-методист ----------
+
+    @Test func quizHasQuestionPerTopicOfArea() {
+        let service = makeService()
+        let questions = service.quiz(.frontend)
+        #expect(questions.map(\.id) == sources.filter { $0.area == .frontend }.map(\.id))
+        #expect(questions.allSatisfy { !$0.question.isEmpty && $0.options.count >= 2 })
+    }
+
+    @Test func knownTopicsFromQuizGoToTheEndOfRulesPlan() async throws {
+        let service = makeService()
+        var request = profile(.frontend)
+        request.quiz = quizAnswers(.frontend, right: ["fe-html"]) + [QuizAnswer(id: "be-sql", option: 0)]
+        let plan = try await service.createProfile(uid, request)
+
+        #expect(plan.quizTaken && plan.known == [title("fe-html")], "чужие темы и «Не знаю» не засчитываются")
+        #expect(plan.quizTotal == 6)
+        #expect(plan.missions.count == MentorService.weeks * 5)
+        #expect(plan.missions.first?.topic == title("fe-css"))
+        #expect(plan.missions.last?.topic == title("fe-html"))
+        #expect(plan.summary?.contains(title("fe-html")) == true)
+    }
+
+    @Test func withoutQuizPlanIsUnchanged() async throws {
+        let plan = try await makeService().createProfile(uid, profile(.frontend))
+        #expect(!plan.quizTaken && plan.known.isEmpty)
+        #expect(plan.missions.first?.topic == title("fe-html"))
+    }
+
+    @Test func aiDraftOrdersTopicsAndExplainsWeeks() async throws {
+        let llm = FakeLlm(draft: CourseDraft(summary: "План под бэкенд", topics: [
+            .init(id: "be-sql", lessons: 3, reason: "Без базы данных никуда"),
+            .init(id: "fe-html", lessons: 5, reason: "чужая тема"),
+            .init(id: "nope", reason: "выдуманная тема"),
+            .init(id: "be-http", reason: "Основа любого API"),
+            .init(id: "be-sql", lessons: 7, reason: "повтор"),
+        ]))
+        let plan = try await makeService(llm: llm).createProfile(uid, profile(.backend, days: 5))
+        let missions = plan.missions
+
+        #expect(plan.summary == "План под бэкенд")
+        #expect(missions.prefix(3).allSatisfy { $0.topic == title("be-sql") })
+        #expect(missions[3].topic == title("be-http"))
+        #expect(plan.weeks.first?.why == "Без базы данных никуда")
+        #expect(plan.weeks[1].why == "Основа любого API")
+        #expect(plan.weeks[2].why == nil, "у второй недели той же темы объяснение не повторяется")
+        #expect(missions.count == MentorService.weeks * 5, "остаток добирается по правилам")
+        #expect(missions.allSatisfy { $0.topic != title("fe-html") })
+        #expect(Set(missions.map { "\($0.topic)/\($0.title)" }).count == missions.count, "задания не дублируются")
+
+        let request = try #require(llm.lastCourse.last)
+        #expect(request.lessons == 40 && request.topics.map(\.id) == sources.filter { $0.area == .backend }.map(\.id))
+        #expect(request.profile.goal == "Стать бэкенд-разработчиком")
+    }
+
+    @Test func newGoalReplansOnlyRemainingPart() async throws {
+        let llm = FakeLlm(draft: CourseDraft(summary: "S", topics: [.init(id: "be-auth", lessons: 2, reason: "Вход")]))
+        let service = makeService(llm: llm)
+        let before = try await service.createProfile(uid, profile(.backend, days: 5))
+        let (done, _) = try await service.answerToday(uid, goodAnswer)
+        try await service.answerToday(uid, badAnswer) // начатый урок тоже остаётся
+
+        let after = try await service.updateSettings(uid, SettingsRequest(goal: "Пройти собеседование", minutesPerDay: 20, daysPerWeek: 5))
+        #expect(after.version == before.version + 1 && after.goal == "Пройти собеседование")
+        #expect(llm.calls["plan"] == 2)
+        #expect(llm.lastCourse.last?.done == [title("be-auth")])
+        #expect(after.missions.first?.id == done.id && after.missions.first?.status == .done)
+        #expect(after.missions.count == MentorService.weeks * 5)
+        let keys = after.missions.map { "\($0.topic)/\($0.title)" }
+        #expect(Set(keys).count == keys.count, "пройденное не попадает в план второй раз")
+    }
+
+    @Test func retakingQuizReplansWithoutGoalChange() async throws {
+        let llm = FakeLlm()
+        let service = makeService(llm: llm)
+        _ = try await service.createProfile(uid, profile(.frontend))
+        let after = try await service.updateSettings(uid, SettingsRequest(
+            goal: "Стать бэкенд-разработчиком", minutesPerDay: 20, daysPerWeek: 5,
+            quiz: quizAnswers(.frontend, right: ["fe-html", "fe-css"])
+        ))
+        #expect(after.version == 2 && llm.calls["plan"] == 2)
+        #expect(after.known == [title("fe-html"), title("fe-css")])
+        #expect(after.missions.first?.topic == title("fe-js"))
+
+        // только время и дни – без запроса к ИИ
+        _ = try await service.updateSettings(uid, SettingsRequest(goal: "Стать бэкенд-разработчиком", minutesPerDay: 30, daysPerWeek: 5))
+        #expect(llm.calls["plan"] == 2)
+    }
+
+    @Test func failingPlannerFallsBackToRules() async throws {
+        let service = MentorService(sources: sources, llm: FallbackLlm(primary: FailingLlm(), fallback: RuleBasedLlm()), store: store)
+        let plan = try await service.createProfile(uid, profile(.backend))
+        #expect(plan.missions.count == MentorService.weeks * 5 && plan.missions.first?.topic == title("be-http"))
+        #expect(plan.summary?.isEmpty == false)
     }
 
     // ---------- Генерация заданий ИИ ----------

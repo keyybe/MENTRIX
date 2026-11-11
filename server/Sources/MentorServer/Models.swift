@@ -32,11 +32,29 @@ public struct ProfileRequest: Content, Equatable {
     public var level: Level
     public var minutesPerDay: Int
     public var daysPerWeek: Int
+    public var quiz: [QuizAnswer]? // ответы мини-теста; nil – тест пропущен
 
-    public init(area: ItArea, goal: String, level: Level, minutesPerDay: Int, daysPerWeek: Int) {
+    public init(area: ItArea, goal: String, level: Level, minutesPerDay: Int, daysPerWeek: Int, quiz: [QuizAnswer]? = nil) {
         self.area = area; self.goal = goal; self.level = level
-        self.minutesPerDay = minutesPerDay; self.daysPerWeek = daysPerWeek
+        self.minutesPerDay = minutesPerDay; self.daysPerWeek = daysPerWeek; self.quiz = quiz
     }
+}
+
+// ---------- Мини-тест ----------
+
+// Вопрос без правильного ответа: проверяет сервер. id – id темы (источника).
+public struct QuizQuestionDto: Content, Equatable {
+    public var id: String
+    public var topic: String
+    public var question: String
+    public var options: [String]
+}
+
+// option – номер выбранного варианта, -1 – «Не знаю»
+public struct QuizAnswer: Content, Equatable {
+    public var id: String
+    public var option: Int
+    public init(id: String, option: Int) { self.id = id; self.option = option }
 }
 
 public struct SourceRef: Content, Equatable {
@@ -62,6 +80,7 @@ public struct MissionDto: Content, Equatable {
 public struct WeekDto: Content, Equatable {
     public var index: Int
     public var title: String
+    public var why: String?           // зачем эта неделя для цели человека (пишет ИИ)
     public var missions: [MissionDto]
 }
 
@@ -73,6 +92,10 @@ public struct PlanDto: Content, Equatable {
     public var level: Level
     public var minutesPerDay: Int
     public var daysPerWeek: Int
+    public var summary: String?   // почему план устроен именно так
+    public var quizTaken: Bool    // проходил ли человек мини-тест
+    public var known: [String]    // темы, которые человек знает по мини-тесту
+    public var quizTotal: Int     // сколько вопросов в мини-тесте направления
 }
 
 public struct TodayDto: Content, Equatable {
@@ -152,12 +175,14 @@ public struct AuthResponse: Content {
 
 // ---------- Настройки ----------
 
+// Новая цель или новые ответы мини-теста – ИИ пересобирает непройденную часть плана
 public struct SettingsRequest: Content {
     public var goal: String
     public var minutesPerDay: Int
     public var daysPerWeek: Int
-    public init(goal: String, minutesPerDay: Int, daysPerWeek: Int) {
-        self.goal = goal; self.minutesPerDay = minutesPerDay; self.daysPerWeek = daysPerWeek
+    public var quiz: [QuizAnswer]?
+    public init(goal: String, minutesPerDay: Int, daysPerWeek: Int, quiz: [QuizAnswer]? = nil) {
+        self.goal = goal; self.minutesPerDay = minutesPerDay; self.daysPerWeek = daysPerWeek; self.quiz = quiz
     }
 }
 
