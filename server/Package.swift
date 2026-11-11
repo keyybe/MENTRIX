@@ -33,5 +33,14 @@ let package = Package(
             name: "CheckLinks",
             dependencies: ["MentorServer", .product(name: "AsyncHTTPClient", package: "async-http-client")]
         ),
+        // swift test; тесты PostgreSQL запускаются, только если задан TEST_DATABASE_URL
+        .testTarget(
+            name: "MentorServerTests",
+            dependencies: [
+                "MentorServer",
+                .product(name: "VaporTesting", package: "vapor"),
+                .product(name: "PostgresNIO", package: "postgres-nio"),
+            ]
+        ),
     ]
 )

@@ -48,6 +48,16 @@ cd server && swift run mentor-server     # в логе: «Хранилище: Po
 
 Таблицы создаются сами при первом запуске.
 
+## Тесты
+
+```bash
+cd server && swift test                       # без базы: тесты PostgreSQL пропускаются
+TEST_DATABASE_URL=postgres://mentor:пароль@localhost:5432/mentor_test swift test   # вместе с PostgreSQL
+```
+
+Тесты iOS: схема **Mento** в Xcode, ⌘U.
+Тесты сервера, iOS и сборку Docker-образа на каждый push запускает GitHub Actions (`.github/workflows/ci.yml`).
+
 ## Переменные окружения сервера
 
 | Переменная | Зачем | По умолчанию |

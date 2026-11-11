@@ -1,0 +1,97 @@
+# Проверка при каждом push и pull request: сервер (Linux + PostgreSQL) и iOS-приложение (симулятор)
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Сервер – сборка и тесты
+    runs-on: ubuntu-latest
+    # тот же образ, что и в Dockerfile, чтобы CI собирал так же, как прод
+    container: swift:6.1-noble
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: mentor_test
+          POSTGRES_USER: mentor
+          POSTGRES_PASSWORD: mentor-ci
+        options: >-
+          --health-cmd "pg_isready -U mentor -d mentor_test"
+          --health-interval 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: server
+    env:
+      TEST_DATABASE_URL: postgres://mentor:mentor-ci@postgres:5432/mentor_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: server/.build
+          key: swift-${{ runner.os }}-6.1-${{ hashFiles('server/Package.resolved') }}
+          restore-keys: swift-${{ runner.os }}-6.1-
+
+      - name: Сборка
+        run: swift build --build-tests
+
+      - name: Тесты
+        run: swift test --skip-build
+
+      - name: Release-сборка (как в Dockerfile)
+        run: swift build -c release --product mentor-server
+
+  docker:
+    name: Docker-образ собирается
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  ios:
+    name: iOS – сборка и тесты
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версия Xcode
+        run: xcodebuild -version
+
+      - name: Тесты на симуляторе
+        run: |
+          # первый доступный iPhone-симулятор: набор устройств на раннерах GitHub меняется
+          DEVICE_ID=$(xcrun simctl list devices available -j \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k,v in d.items() if "iOS" in k for x in v if x["name"].startswith("iPhone")))')
+          echo "Симулятор: $DEVICE_ID"
+          xcodebuild test \
+            -project Mento.xcodeproj \
+            -scheme Mento \
+            -destination "id=$DEVICE_ID" \
+            CODE_SIGNING_ALLOWED=NO \
+            > xcodebuild.log 2>&1 || { grep -E "error:|✘" xcodebuild.log | head -50; tail -50 xcodebuild.log; exit 1; }
+          grep -E "✔ Test run|\*\* TEST" xcodebuild.log
+
+      - name: Лог сборки при ошибке
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: ios/xcodebuild.log
