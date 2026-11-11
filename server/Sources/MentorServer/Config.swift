@@ -31,17 +31,23 @@ public struct ServerConfig: Sendable {
             store = InMemoryUserStore()
         }
 
-        // Если заданы LLM_API_KEY и LLM_MODEL – проверяет внешняя модель, а офлайн-проверка остаётся резервом
+        // Внешние модели по очереди: LLM_* – основная, LLM_BACKUP_* – запасная (например, другой провайдер
+        // со своим бесплатным лимитом). Если не ответила ни одна – офлайн-проверка.
         let rules = RuleBasedLlm()
-        let llm: any LlmClient
-        if let key = env("LLM_API_KEY"), let model = env("LLM_MODEL") {
-            let baseURL = env("LLM_BASE_URL") ?? "https://generativelanguage.googleapis.com/v1beta/openai/"
-            let reasoning = env("LLM_REASONING") // low / medium / high; для скорости – low
-            logger.info("Внешняя модель: \(model) (\(baseURL)), reasoning_effort=\(reasoning ?? "по умолчанию")")
-            llm = FallbackLlm(primary: HttpLlm(baseURL: baseURL, apiKey: key, model: model, reasoningEffort: reasoning), fallback: rules)
-        } else {
-            logger.info("LLM_API_KEY или LLM_MODEL не заданы – работает офлайн-проверка")
-            llm = rules
+        let models = ["LLM", "LLM_BACKUP"].compactMap { prefix -> (name: String, client: HttpLlm)? in
+            guard let key = env("\(prefix)_API_KEY"), let model = env("\(prefix)_MODEL") else { return nil }
+            let baseURL = env("\(prefix)_BASE_URL") ?? "https://generativelanguage.googleapis.com/v1beta/openai/"
+            let reasoning = env("\(prefix)_REASONING") // low / medium / high; для скорости – low
+            logger.info("Внешняя модель (\(prefix)): \(model) (\(baseURL)), reasoning_effort=\(reasoning ?? "по умолчанию")")
+            return (model, HttpLlm(baseURL: baseURL, apiKey: key, model: model, reasoningEffort: reasoning))
+        }
+        if models.isEmpty { logger.info("LLM_API_KEY или LLM_MODEL не заданы – работает офлайн-проверка") }
+        // собираем цепочку с конца: последняя модель падает на офлайн-проверку, предыдущая – на следующую модель
+        var llm: any LlmClient = rules
+        var next = "офлайн-режим"
+        for m in models.reversed() {
+            llm = FallbackLlm(primary: m.client, fallback: llm, primaryName: m.name, fallbackName: next)
+            next = m.name
         }
 
         let secret = env("JWT_SECRET") ?? {

@@ -155,9 +155,14 @@ public struct HttpLlm: LlmClient {
         let content: String
     }
 
+    private struct ResponseFormat: Encodable {
+        let type: String
+    }
+
     private struct CompletionRequest: Encodable {
         let model: String
         let reasoning_effort: String?
+        let response_format: ResponseFormat?
         let messages: [Message]
     }
 
@@ -201,7 +206,7 @@ public struct HttpLlm: LlmClient {
                 content: "\(levelDesc(level))\nЗадание: \(task.prompt)\nКлючевые понятия: \(task.keywordNames.joined(separator: ", "))\n" +
                     "Ответ ученика:\n<answer>\n\(answer.replacingOccurrences(of: "</answer>", with: ""))\n</answer>"
             ),
-        ])
+        ], json: true)
         let parsed = try decodeAnswer(LlmAnswer.self, content)
         return Evaluation(score: min(max(parsed.score, 0), 100), feedback: parsed.feedback, gaps: parsed.gaps ?? [])
     }
@@ -229,7 +234,7 @@ public struct HttpLlm: LlmClient {
         let content = try await complete([
             Message(role: "system", content: Self.planPrompt),
             Message(role: "user", content: about.joined(separator: "\n") + "\nТемы:\n" + topics.joined(separator: "\n")),
-        ])
+        ], json: true)
         let parsed = try decodeAnswer(DraftAnswer.self, content)
         return CourseDraft(
             summary: String((parsed.summary ?? "").trimmed.prefix(600)),
@@ -253,7 +258,7 @@ public struct HttpLlm: LlmClient {
                     "Верни ТОЛЬКО JSON: {\"prompt\": \"вопрос\", \"keywords\": [\"2–3 ключевых слова из правильного ответа\"]}."
             ),
             Message(role: "user", content: "Пример вопроса: \(base.prompt)\(avoid)"),
-        ])
+        ], json: true)
         let parsed = try decodeAnswer(GeneratedTask.self, content)
         if parsed.prompt.trimmed.isEmpty { return base }
         var task = base
@@ -276,8 +281,12 @@ public struct HttpLlm: LlmClient {
     // При временной перегрузке (503) один раз повторяем запрос. 429 – чаще всего исчерпана квота: ждать бесполезно,
     // сразу отдаём ошибку, и FallbackLlm отвечает офлайн. При других ошибках – исключение с ответом модели,
     // чтобы в логе FallbackLlm была видна настоящая причина.
-    private func complete(_ messages: [Message]) async throws -> String {
-        let payload = try JSONEncoder().encode(CompletionRequest(model: model, reasoning_effort: reasoningEffort, messages: messages))
+    // json = true – JSON-режим: провайдер сам гарантирует, что ответ – корректный JSON-объект
+    private func complete(_ messages: [Message], json: Bool = false) async throws -> String {
+        let payload = try JSONEncoder().encode(CompletionRequest(
+            model: model, reasoning_effort: reasoningEffort,
+            response_format: json ? ResponseFormat(type: "json_object") : nil, messages: messages
+        ))
         let deadline = NIODeadline.now() + Self.timeout
         var attempt = 0
         while true {
@@ -286,6 +295,8 @@ public struct HttpLlm: LlmClient {
             request.method = .POST
             request.headers.add(name: "Authorization", value: "Bearer \(apiKey)")
             request.headers.add(name: "Content-Type", value: "application/json")
+            // без User-Agent некоторые провайдеры (Groq за Cloudflare) отвечают 403
+            request.headers.add(name: "User-Agent", value: "Mento-Server/1.0")
             request.body = .bytes(ByteBuffer(data: payload))
 
             let response = try await client.execute(request, deadline: deadline)
@@ -355,15 +366,21 @@ struct UpstreamError: Error, CustomStringConvertible {
     var description: String { message }
 }
 
-// При ошибке primary отвечает fallback (ошибка пишется в лог, чтобы её было видно)
+// При ошибке primary отвечает fallback (ошибка пишется в лог, чтобы её было видно).
+// Цепочку из нескольких моделей собирают вложением: fallback сам может быть FallbackLlm.
 public struct FallbackLlm: LlmClient {
     private let primary: any LlmClient
     private let fallback: any LlmClient
+    private let primaryName: String
+    private let fallbackName: String
     private let logger = Logger(label: "FallbackLlm")
 
-    public init(primary: any LlmClient, fallback: any LlmClient) {
+    public init(primary: any LlmClient, fallback: any LlmClient,
+                primaryName: String = "Внешняя модель", fallbackName: String = "офлайн-режим") {
         self.primary = primary
         self.fallback = fallback
+        self.primaryName = primaryName
+        self.fallbackName = fallbackName
     }
 
     private func withFallback<T>(_ what: String, _ primaryCall: () async throws -> T, _ fallbackCall: () async throws -> T) async throws -> T {
@@ -372,7 +389,7 @@ public struct FallbackLlm: LlmClient {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
-            logger.warning("Внешняя модель не справилась (\(what)), работает офлайн-режим: \(String(describing: error))")
+            logger.warning("\(primaryName) не справилась (\(what)), отвечает \(fallbackName): \(String(describing: error))")
             return try await fallbackCall()
         }
     }

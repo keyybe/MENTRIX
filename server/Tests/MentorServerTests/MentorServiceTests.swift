@@ -331,6 +331,17 @@ import Testing
         #expect(plan.summary?.isEmpty == false)
     }
 
+    @Test func backupModelAnswersWhenPrimaryFails() async throws {
+        let backup = FakeLlm(draft: CourseDraft(summary: "От запасной модели", topics: [.init(id: "be-sql", reason: "SQL")]))
+        let chain = FallbackLlm(primary: FailingLlm(), fallback: FallbackLlm(primary: backup, fallback: RuleBasedLlm()))
+        let service = MentorService(sources: sources, llm: chain, store: store)
+        let plan = try await service.createProfile(uid, profile(.backend))
+        #expect(plan.summary == "От запасной модели" && plan.missions.first?.topic == title("be-sql"))
+        _ = try await service.answerToday(uid, goodAnswer)
+        #expect(backup.calls["plan"] == 1 && backup.calls["evaluate"] == 1)
+        await service.awaitBackground()
+    }
+
     // ---------- Генерация заданий ИИ ----------
 
     @Test func generatedTaskIsPreparedInBackgroundAndKeepsTitle() async throws {

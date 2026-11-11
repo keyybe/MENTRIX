@@ -69,6 +69,7 @@ TEST_DATABASE_URL=postgres://mentor:пароль@localhost:5432/mentor_test swif
 | `AUTH_DEV` | `true` – вход без аккаунта. **Не включай на боевом сервере** | `false` |
 | `ADMIN_TOKEN` | доступ к `GET /admin/stats` (заголовок `X-Admin-Token`) | нет – статистика выключена |
 | `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | внешняя модель с OpenAI-совместимым API | без ключа и модели – офлайн-проверка |
+| `LLM_BACKUP_BASE_URL`, `LLM_BACKUP_API_KEY`, `LLM_BACKUP_MODEL` | запасная модель, если основная не ответила | нет – сразу офлайн-проверка |
 | `PORT` | порт | 8080 |
 
 Ключи и пароли храни только в переменных окружения или в `.env` (он в `.gitignore`), никогда в коде.
@@ -78,9 +79,11 @@ TEST_DATABASE_URL=postgres://mentor:пароль@localhost:5432/mentor_test swif
 Протокол `LlmClient` скрывает, кто проверяет ответы и пишет подсказки:
 - `RuleBasedLlm` – офлайн-проверка по ключевым понятиям задания;
 - `HttpLlm` – внешняя модель (Gemini, OpenAI и др.);
-- `FallbackLlm` – пробует внешнюю модель, а при ошибке отвечает офлайн-проверкой.
+- `FallbackLlm` – пробует внешнюю модель, а при ошибке отвечает следующая: запасная модель, затем офлайн-проверка.
 
-Gemini бесплатно: ключ на [aistudio.google.com](https://aistudio.google.com/), `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`, `LLM_MODEL=<актуальная Flash-модель из списка в AI Studio>`.
+Бесплатные варианты (у каждого свой дневной лимит, поэтому выгодно задать основную и запасную модель разных провайдеров):
+- Groq: ключ на [console.groq.com](https://console.groq.com/), `LLM_BASE_URL=https://api.groq.com/openai/v1`, `LLM_MODEL=openai/gpt-oss-120b`;
+- Gemini: ключ на [aistudio.google.com](https://aistudio.google.com/), `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`, `LLM_MODEL=<актуальная Flash-модель из списка в AI Studio>`.
 
 ## Вход через Google
 
