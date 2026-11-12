@@ -35,9 +35,9 @@ private struct SummaryCard: View {
     let text: String
 
     var body: some View {
-        SoftCard(color: Palette.indigoSoft) {
+        SoftCard(color: Palette.accentSoft) {
             HStack(alignment: .top, spacing: 12) {
-                IconTile(icon: "sparkles", tint: .white, background: Palette.indigo, size: 36)
+                IconTile(icon: "sparkles", tint: Palette.onAccent, background: Palette.accent, size: 36)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Почему такой план").font(.titleSmall).foregroundStyle(Palette.ink)
                     Text(text).font(.bodyMedium).foregroundStyle(Palette.inkSoft)
@@ -62,7 +62,7 @@ private struct WeekCard: View {
                 HStack(spacing: 12) {
                     Text("\(week.index)")
                         .font(.titleMedium)
-                        .foregroundStyle(highlighted ? .white : Palette.inkSoft)
+                        .foregroundStyle(highlighted ? Palette.onAccent : Palette.inkSoft)
                         .frame(width: 36, height: 36)
                         .background(highlighted ? AnyShapeStyle(Gradients.primary) : AnyShapeStyle(Palette.background),
                                     in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -100,7 +100,7 @@ private struct MissionRow: View {
         let done = mission.status == .done
         let (icon, tint, bg): (String, Color, Color) =
             if done { ("checkmark.circle.fill", Palette.mint, Palette.mintSoft) }
-            else if current { ("play.fill", .white, Palette.indigo) }
+            else if current { ("play.fill", Palette.onAccent, Palette.accent) }
             else if mission.review { ("arrow.counterclockwise", Palette.amber, Palette.amberSoft) }
             else { ("lock.fill", Palette.inkSoft, Palette.background) }
 
@@ -108,13 +108,13 @@ private struct MissionRow: View {
             IconTile(icon: icon, tint: tint, background: bg, size: 36)
             VStack(alignment: .leading, spacing: 2) {
                 Text(mission.title).font(.titleSmall).foregroundStyle(done || current ? Palette.ink : Palette.inkSoft)
-                Text(subtitle).font(.bodySmall).foregroundStyle(current ? Palette.indigo : Palette.inkSoft)
+                Text(subtitle).font(.bodySmall).foregroundStyle(current ? Palette.accent : Palette.inkSoft)
             }
             Spacer(minLength: 0)
-            if current { Image(systemName: "chevron.right").foregroundStyle(Palette.indigo) }
+            if current { Image(systemName: "chevron.right").foregroundStyle(Palette.accent) }
         }
         .padding(10)
-        .background(current ? Palette.indigoSoft : .clear, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(current ? Palette.accentSoft : .clear, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.horizontal, 8)
 
         if current {

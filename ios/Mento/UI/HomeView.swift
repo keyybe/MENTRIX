@@ -51,7 +51,7 @@ struct HomeView: View {
                         action: onStartLesson
                     )
                     QuickTile(
-                        icon: "sparkles", tint: Palette.indigo,
+                        icon: "sparkles", tint: Palette.accent,
                         title: "Ментор", subtitle: "спросить об уроке",
                         enabled: vm.today?.mission != nil && !vm.offline,
                         action: onOpenChat
@@ -104,13 +104,13 @@ private struct WeekStrip: View {
                     let done = (i < activity.count && activity[i]) || (i == todayIndex && doneToday)
                     let isToday = i == todayIndex
                     VStack(spacing: 6) {
-                        Text(dayLetters[i]).font(.labelMedium).foregroundStyle(isToday ? Palette.indigo : Palette.inkSoft)
+                        Text(dayLetters[i]).font(.labelMedium).foregroundStyle(isToday ? Palette.accent : Palette.inkSoft)
                         ZStack {
                             if done {
                                 Circle().fill(Gradients.primary)
-                                Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(.white)
+                                Image(systemName: "checkmark").font(.system(size: 14, weight: .bold)).foregroundStyle(Palette.onAccent)
                             } else if isToday {
-                                Circle().strokeBorder(Palette.indigo, lineWidth: 2)
+                                Circle().strokeBorder(Palette.accent, lineWidth: 2)
                             } else {
                                 Circle().fill(i < todayIndex ? Palette.line : Palette.background)
                             }
@@ -136,22 +136,22 @@ private struct LessonHero: View {
             if let mission = vm.today?.mission {
                 if vm.progress?.doneToday == true {
                     Label("Урок дня пройден", systemImage: "checkmark.circle.fill")
-                        .font(.titleMedium).foregroundStyle(.white)
-                    Text("Дальше: \(mission.title)").font(.headlineSmall).foregroundStyle(.white)
-                    Text("Можно остановиться или пройти ещё один урок").font(.bodyMedium).foregroundStyle(.white.opacity(0.85))
+                        .font(.titleMedium).foregroundStyle(Palette.heroText)
+                    Text("Дальше: \(mission.title)").font(.headlineSmall).foregroundStyle(Palette.heroText)
+                    Text("Можно остановиться или пройти ещё один урок").font(.bodyMedium).foregroundStyle(Palette.heroText.opacity(0.85))
                     HeroButton(text: "Ещё урок", action: onStart).padding(.top, 4)
                 } else {
                     Text("\(mission.review ? "ПОВТОРЕНИЕ" : "УРОК ДНЯ") · \(mission.minutes) МИН")
-                        .font(.labelMedium).foregroundStyle(.white.opacity(0.8))
-                    Text(mission.title).font(.headlineMedium).foregroundStyle(.white)
-                    Text(mission.topic).font(.bodyMedium).foregroundStyle(.white.opacity(0.85))
+                        .font(.labelMedium).foregroundStyle(Palette.heroText.opacity(0.8))
+                    Text(mission.title).font(.headlineMedium).foregroundStyle(Palette.heroText)
+                    Text(mission.topic).font(.bodyMedium).foregroundStyle(Palette.heroText.opacity(0.85))
                     HeroButton(text: "Начать урок", action: onStart).padding(.top, 4)
                 }
             } else {
-                Image(systemName: "trophy.fill").font(.system(size: 32)).foregroundStyle(.white)
-                Text("На сегодня всё").font(.headlineSmall).foregroundStyle(.white)
+                Image(systemName: "trophy.fill").font(.system(size: 32)).foregroundStyle(Palette.heroText)
+                Text("На сегодня всё").font(.headlineSmall).foregroundStyle(Palette.heroText)
                 Text(vm.today?.message ?? "Возвращайся завтра за новым уроком.")
-                    .font(.bodyMedium).foregroundStyle(.white.opacity(0.85))
+                    .font(.bodyMedium).foregroundStyle(Palette.heroText.opacity(0.85))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -160,7 +160,7 @@ private struct LessonHero: View {
     }
 }
 
-// Белая кнопка на градиенте
+// Светлая кнопка-капсула на винной карточке
 private struct HeroButton: View {
     let text: String
     let action: () -> Void
@@ -171,10 +171,10 @@ private struct HeroButton: View {
                 Text(text).font(.titleMedium)
                 Image(systemName: "arrow.right").font(.system(size: 16, weight: .bold))
             }
-            .foregroundStyle(Palette.indigo)
+            .foregroundStyle(Palette.heroInk)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .background(.white, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(Palette.heroText, in: Capsule())
         }
         .buttonStyle(.pressable)
     }

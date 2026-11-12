@@ -31,14 +31,14 @@ struct LoginView: View {
         VStack(spacing: 12) {
             Image(systemName: "sparkles")
                 .font(.system(size: 40, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Palette.heroText)
                 .frame(width: 88, height: 88)
-                .background(.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .background(Palette.heroText.opacity(0.12), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
                 .padding(.bottom, 4)
-            Text("Mento").font(.headlineLarge).foregroundStyle(.white)
+            Text("Mento").font(.headlineLarge).foregroundStyle(Palette.heroText)
             Text("Программирование по 15 минут в день")
                 .font(.bodyLarge)
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(Palette.heroText.opacity(0.85))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -46,15 +46,11 @@ struct LoginView: View {
         .padding(.vertical, 40)
     }
 
-    // нижняя белая карточка с переключением Вход/Регистрация и формой
+    // нижняя карточка с переключением Вход/Регистрация и формой
     private var form: some View {
         VStack(spacing: 14) {
-            Picker("", selection: $isRegister.animation()) {
-                Text("Вход").tag(false)
-                Text("Регистрация").tag(true)
-            }
-            .pickerStyle(.segmented)
-            .padding(.bottom, 4)
+            ModeSwitch(isRegister: $isRegister.animation(.easeInOut(duration: 0.2)))
+                .padding(.bottom, 4)
 
             if isRegister {
                 AppTextField(placeholder: "Твоё имя", text: $name, icon: "person.fill")
@@ -132,5 +128,33 @@ struct LoginView: View {
             }
             google = nil
         }
+    }
+}
+
+// Переключатель «Вход / Регистрация» в цветах приложения: выбранный вариант – капсула акцентного цвета
+private struct ModeSwitch: View {
+    @Binding var isRegister: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            option("Вход", selected: !isRegister) { isRegister = false }
+            option("Регистрация", selected: isRegister) { isRegister = true }
+        }
+        .padding(4)
+        .background(Palette.background, in: Capsule())
+        .overlay { Capsule().strokeBorder(Palette.line) }
+    }
+
+    private func option(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.labelLarge)
+                .foregroundStyle(selected ? Palette.onAccent : Palette.inkSoft)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+                .background(selected ? Palette.accent : .clear, in: Capsule())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

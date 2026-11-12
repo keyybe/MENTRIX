@@ -26,9 +26,9 @@ struct ChatView: View {
                     HStack(spacing: 8) {
                         ForEach(quickQuestions, id: \.self) { q in
                             Button { chat.send(q) } label: {
-                                Text(q).font(.labelLarge).foregroundStyle(Palette.indigo)
+                                Text(q).font(.labelLarge).foregroundStyle(Palette.accent)
                                     .padding(.horizontal, 14).padding(.vertical, 8)
-                                    .background(Palette.indigoSoft, in: Capsule())
+                                    .background(Palette.accentSoft, in: Capsule())
                             }
                             .buttonStyle(.pressable)
                         }
@@ -48,12 +48,12 @@ struct ChatView: View {
 
     private var header: some View {
         HStack(spacing: 12) {
-            Image(systemName: "sparkles").font(.system(size: 18, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: "sparkles").font(.system(size: 18, weight: .semibold)).foregroundStyle(Palette.onAccent)
                 .frame(width: 40, height: 40).background(Gradients.primary, in: Circle())
             VStack(alignment: .leading, spacing: 2) {
                 Text("ИИ-ментор").font(.titleMedium).foregroundStyle(Palette.ink)
                 Text(chat.sending ? "печатает…" : mission.title)
-                    .font(.bodySmall).foregroundStyle(chat.sending ? Palette.indigo : Palette.inkSoft).lineLimit(1)
+                    .font(.bodySmall).foregroundStyle(chat.sending ? Palette.accent : Palette.inkSoft).lineLimit(1)
             }
             Spacer()
             Button(action: onClose) {
@@ -73,7 +73,7 @@ struct ChatView: View {
                 LazyVStack(spacing: 10) {
                     SoftCard {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Вопрос урока").font(.labelMedium).foregroundStyle(Palette.indigo)
+                            Text("Вопрос урока").font(.labelMedium).foregroundStyle(Palette.accent)
                             Text(mission.task).font(.titleMedium).foregroundStyle(Palette.ink)
                             Text("Я не скажу ответ сразу, но помогу до него дойти.").font(.bodySmall).foregroundStyle(Palette.inkSoft)
                         }
@@ -110,20 +110,20 @@ struct ChatView: View {
                 .font(.bodyLarge)
                 .foregroundStyle(Palette.ink)
                 .focused($inputFocused)
-                .tint(Palette.indigo)
+                .tint(Palette.accent)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 14)
                 .background(Palette.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .strokeBorder(inputFocused ? Palette.indigo : Palette.line, lineWidth: inputFocused ? 2 : 1)
+                        .strokeBorder(inputFocused ? Palette.accent : Palette.line, lineWidth: inputFocused ? 2 : 1)
                 }
             Button {
                 chat.send(input)
                 input = ""
             } label: {
                 Image(systemName: "paperplane.fill").font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(canSend ? .white : Palette.inkSoft)
+                    .foregroundStyle(canSend ? Palette.onAccent : Palette.inkSoft)
                     .frame(width: 52, height: 52)
                     .background(canSend ? AnyShapeStyle(Gradients.primary) : AnyShapeStyle(Palette.line), in: Circle())
             }
@@ -147,7 +147,7 @@ private struct Bubble: View {
             if mine { Spacer(minLength: 48) }
             Text(text)
                 .font(.bodyLarge)
-                .foregroundStyle(mine ? .white : Palette.ink)
+                .foregroundStyle(mine ? Palette.onAccent : Palette.ink)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(mine ? AnyShapeStyle(Gradients.primary) : AnyShapeStyle(Palette.surface), in: shape)

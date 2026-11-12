@@ -9,48 +9,96 @@ extension Color {
                   green: Double((hex >> 8) & 0xFF) / 255,
                   blue: Double(hex & 0xFF) / 255)
     }
+
+    // Цвет для светлой и тёмной темы: SwiftUI сам берёт нужный вариант
+    init(light: UInt32, dark: UInt32, opacity: Double = 1) {
+        func ui(_ hex: UInt32) -> UIColor {
+            UIColor(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255,
+                    blue: CGFloat(hex & 0xFF) / 255, alpha: opacity)
+        }
+        self.init(uiColor: UIColor { $0.userInterfaceStyle == .dark ? ui(dark) : ui(light) })
+    }
 }
 
+// Винная палитра: от почти чёрного #1D1015 до пудрового #F1DDE0.
+// В тёмной теме фон тёмный, а текст и главные кнопки пудровые; в светлой – наоборот.
+// Остальные цвета (успех, серия, ошибки) подобраны в тон, но различимы.
 enum Palette {
-    static let indigo = Color(hex: 0x5B5BF6)      // основной
-    static let violet = Color(hex: 0x9B5CF6)      // второй цвет градиента
-    static let indigoSoft = Color(hex: 0xEEEEFE)  // тонированный фон основного
-    static let indigoDeep = Color(hex: 0x3F3DC8)
-    static let mint = Color(hex: 0x12B5A0)        // успех
-    static let mintSoft = Color(hex: 0xE3F7F3)
-    static let amber = Color(hex: 0xF59E0B)       // серия занятий
-    static let amberSoft = Color(hex: 0xFEF3DC)
-    static let coral = Color(hex: 0xF2545B)       // ошибки
-    static let coralSoft = Color(hex: 0xFDECEC)
-    static let sky = Color(hex: 0x3B9EF5)
-    static let skySoft = Color(hex: 0xE6F2FE)
-    static let ink = Color(hex: 0x14152B)         // основной текст
-    static let inkSoft = Color(hex: 0x6B6F86)     // второстепенный текст
-    static let line = Color(hex: 0xE7E8F0)        // рамки
-    static let background = Color(hex: 0xF6F6FB)
-    static let surface = Color.white
-    static let cardShadow = Color(red: 0x34 / 255, green: 0x3A / 255, blue: 0x8C / 255).opacity(0.13)
+    static let accent = Color(light: 0x702B40, dark: 0xD28B96)      // основной акцент: иконки, рамки, выбор
+    static let accentSoft = Color(light: 0xF1DDE0, dark: 0x421B29)  // тонированный фон акцента
+    static let accentDeep = Color(hex: 0xA64C61)
+    static let wine = Color(hex: 0x702B40)
+    static let onAccent = Color(light: 0xF1DDE0, dark: 0x1D1015)    // текст и иконки на акценте и главных кнопках
+    static let mint = Color(light: 0x2E8B65, dark: 0x8FD1AE)        // успех
+    static let mintSoft = Color(light: 0xE0F1E8, dark: 0x22302A)
+    static let amber = Color(light: 0xB5701D, dark: 0xF2BE7E)       // серия занятий
+    static let amberSoft = Color(light: 0xF8EAD6, dark: 0x3A2620)
+    static let coral = Color(light: 0xC8364A, dark: 0xFF8A8A)       // ошибки
+    static let coralSoft = Color(light: 0xF9DDE1, dark: 0x40192A)
+    static let sky = Color(light: 0x6E4DB8, dark: 0xC3A8EE)         // дополнительный (сиреневый)
+    static let skySoft = Color(light: 0xECE4F8, dark: 0x2E1D38)
+    static let ink = Color(light: 0x1D1015, dark: 0xF1DDE0)         // основной текст
+    static let inkSoft = Color(light: 0x7A5560, dark: 0xBF97A0)     // второстепенный текст
+    static let line = Color(light: 0xE6CFD4, dark: 0x4A2433)        // рамки
+    static let background = Color(light: 0xF7EEF0, dark: 0x1D1015)
+    static let surface = Color(light: 0xFFFFFF, dark: 0x2A151E)     // карточки
+    static let cardShadow = Color(light: 0x702B40, dark: 0x000000, opacity: 0.12)
+    // винная карточка урока и шапка входа одинаковы в обеих темах
+    static let heroText = Color(hex: 0xF1DDE0)
+    static let heroInk = Color(hex: 0x1D1015)
 }
 
 enum Gradients {
-    static let primary = LinearGradient(colors: [Palette.indigo, Palette.violet], startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let hero = LinearGradient(colors: [Color(hex: 0x4F46E5), Color(hex: 0x8B5CF6), Color(hex: 0xC06CF0)],
+    // главные кнопки и выбранные элементы: пудровая капсула в тёмной теме, винная – в светлой
+    static let primary = LinearGradient(colors: [Color(light: 0xA64C61, dark: 0xF1DDE0), Color(light: 0x702B40, dark: 0xD28B96)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing)
+    // глубокий винный – главная карточка и шапка входа
+    static let hero = LinearGradient(colors: [Color(hex: 0xA64C61), Color(hex: 0x702B40), Color(hex: 0x421B29)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing)
-    static let success = LinearGradient(colors: [Palette.mint, Color(hex: 0x0EA5A0)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    static let success = LinearGradient(colors: [Palette.mint, Color(light: 0x23704F, dark: 0x6DB892)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing)
+}
+
+// Тема оформления, выбирается в профиле и хранится на устройстве
+enum AppTheme: String, CaseIterable {
+    case dark, light, system
+
+    static let storageKey = "appTheme"
+
+    var title: String {
+        switch self {
+        case .dark: "Тёмная"
+        case .light: "Светлая"
+        case .system: "Как в системе"
+        }
+    }
+
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .dark: .dark
+        case .light: .light
+        case .system: nil
+        }
+    }
 }
 
 // ---------- Шрифт ----------
-// Системный шрифт в скруглённом варианте – близок к Manrope из Android-версии и хорошо держит кириллицу.
+// Заголовки – системный шрифт с засечками (New York), остальной текст – обычный системный.
+// Оба хорошо держат кириллицу.
 
 extension Font {
     static func app(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {
-        .system(size: size, weight: weight, design: .rounded)
+        .system(size: size, weight: weight)
     }
 
-    static let headlineLarge = app(32, .heavy)
-    static let headlineMedium = app(26, .heavy)
-    static let headlineSmall = app(22, .bold)
-    static let titleLarge = app(20, .bold)
+    static func display(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight, design: .serif)
+    }
+
+    static let headlineLarge = display(34, .bold)
+    static let headlineMedium = display(28, .semibold)
+    static let headlineSmall = display(23, .semibold)
+    static let titleLarge = display(20, .semibold)
     static let titleMedium = app(16, .bold)
     static let titleSmall = app(14, .semibold)
     static let bodyLarge = app(16, .medium)
@@ -90,10 +138,10 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                Capsule()
                     .fill(enabled ? AnyShapeStyle(gradient) : AnyShapeStyle(Palette.line))
-                    .shadow(color: enabled ? Palette.indigo.opacity(0.3) : .clear, radius: 10, y: 4)
-                let color = enabled ? Color.white : Palette.inkSoft
+                    .shadow(color: enabled ? Palette.accent.opacity(0.25) : .clear, radius: 14, y: 4)
+                let color = enabled ? Palette.onAccent : Palette.inkSoft
                 if loading {
                     ProgressView().tint(color)
                 } else {
@@ -116,8 +164,8 @@ struct PrimaryButton: View {
 struct TonalButton: View {
     let text: String
     var icon: String? = nil
-    var color: Color = Palette.indigo
-    var background: Color = Palette.indigoSoft
+    var color: Color = Palette.accent
+    var background: Color = Palette.accentSoft
     var enabled = true
     var fillWidth = false
     let action: () -> Void
@@ -133,7 +181,7 @@ struct TonalButton: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: fillWidth ? .infinity : nil)
             .frame(height: 48)
-            .background(enabled ? background : Palette.background, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(enabled ? background : Palette.surface, in: Capsule())
         }
         .buttonStyle(.pressable)
         .disabled(!enabled)
@@ -152,9 +200,9 @@ struct SoftCard<Content: View>: View {
         let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
         VStack(alignment: .leading, spacing: 0, content: content)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(selected ? Palette.indigoSoft : color, in: shape)
-            .overlay { if selected { shape.strokeBorder(Palette.indigo, lineWidth: 2) } }
-            .shadow(color: selected ? .clear : Palette.cardShadow, radius: 8, y: 3)
+            .background(selected ? Palette.accentSoft : color, in: shape)
+            .overlay { shape.strokeBorder(selected ? Palette.accent : Palette.line.opacity(0.7), lineWidth: selected ? 2 : 1) }
+            .shadow(color: selected ? .clear : Palette.cardShadow, radius: 12, y: 6)
     }
 }
 
@@ -260,9 +308,9 @@ struct AppTextField: View {
         .background(Palette.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(focused ? Palette.indigo : Palette.line, lineWidth: focused ? 2 : 1)
+                .strokeBorder(focused ? Palette.accent : Palette.line, lineWidth: focused ? 2 : 1)
         }
-        .tint(Palette.indigo)
+        .tint(Palette.accent)
     }
 
     private var prompt: Text { Text(placeholder).foregroundStyle(Palette.inkSoft) }
@@ -284,8 +332,8 @@ struct UserAvatar: View {
                     .accessibilityLabel("Фото профиля")
             } else {
                 Text(initial)
-                    .font(.system(size: size * 0.42, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
+                    .font(.system(size: size * 0.42, weight: .semibold, design: .serif))
+                    .foregroundStyle(Palette.onAccent)
             }
         }
         .frame(width: size, height: size)
@@ -326,7 +374,7 @@ extension ItArea {
     var tint: Color {
         switch self {
         case .frontend: Palette.sky
-        case .backend: Palette.indigo
+        case .backend: Palette.accent
         case .mobile: Palette.mint
         }
     }

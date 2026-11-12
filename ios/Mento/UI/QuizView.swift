@@ -14,7 +14,7 @@ struct QuizQuestionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Вопрос \(index + 1) из \(total)").font(.labelMedium).foregroundStyle(Palette.indigo)
+                Text("Вопрос \(index + 1) из \(total)").font(.labelMedium).foregroundStyle(Palette.accent)
                 Spacer()
                 Text(question.topic).font(.labelMedium).foregroundStyle(Palette.inkSoft).lineLimit(1)
             }
@@ -44,7 +44,7 @@ private struct AnswerRow: View {
                     Spacer(minLength: 0)
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 20))
-                        .foregroundStyle(selected ? Palette.indigo : Palette.line)
+                        .foregroundStyle(selected ? Palette.accent : Palette.line)
                 }
                 .padding(16)
             }

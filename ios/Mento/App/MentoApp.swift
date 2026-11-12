@@ -47,6 +47,7 @@ struct MentoApp: App {
     @State private var vm: MentorViewModel
     @State private var chat: ChatViewModel
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(AppTheme.storageKey) private var theme = AppTheme.dark
 
     init() {
         let c = AppContainer()
@@ -59,7 +60,7 @@ struct MentoApp: App {
             RootView()
                 .environment(vm)
                 .environment(chat)
-                .preferredColorScheme(.light) // тема приложения пока только светлая
+                .preferredColorScheme(theme.colorScheme) // тема из профиля; nil – как в системе
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { vm.rescheduleReminder() }

@@ -94,7 +94,7 @@ private struct QuestionView: View {
                         if mission.review {
                             InfoPill(icon: "arrow.counterclockwise", text: "Повторение", tint: Palette.amber, background: Palette.amberSoft)
                         } else {
-                            InfoPill(icon: "sparkles", text: "Новый урок", tint: Palette.indigo, background: Palette.indigoSoft)
+                            InfoPill(icon: "sparkles", text: "Новый урок", tint: Palette.accent, background: Palette.accentSoft)
                         }
                         if mission.code {
                             InfoPill(icon: "chevron.left.forwardslash.chevron.right", text: "Код", tint: Palette.mint, background: Palette.mintSoft)
@@ -190,7 +190,7 @@ private struct RewardView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "checkmark")
                         .font(.system(size: 56, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Palette.onAccent)
                         .frame(width: 112, height: 112)
                         .background(Gradients.success, in: Circle())
                         .scaleEffect(appeared ? 1 : 0.6)

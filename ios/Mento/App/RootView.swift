@@ -19,7 +19,7 @@ struct RootView: View {
             case .login:
                 LoginView().transition(.screen)
             case .loading:
-                ProgressView().tint(Palette.indigo).controlSize(.large).transition(.opacity)
+                ProgressView().tint(Palette.accent).controlSize(.large).transition(.opacity)
             case .onboarding:
                 OnboardingView().transition(.screen)
             case .main:
@@ -46,7 +46,7 @@ private struct NoticeToast: View {
             if let notice = vm.notice {
                 Text(notice)
                     .font(.bodyMedium)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Palette.background)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 14)
                     .background(Palette.ink.opacity(0.92), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -100,7 +100,7 @@ struct MainView: View {
                     .tag(t)
             }
         }
-        .tint(Palette.indigo)
+        .tint(Palette.accent)
         // Урок открывается на весь экран; если его закрыли после проверки – обновляем данные
         .fullScreenCover(isPresented: $lessonOpen, onDismiss: {
             if vm.evaluation != nil { vm.next() }

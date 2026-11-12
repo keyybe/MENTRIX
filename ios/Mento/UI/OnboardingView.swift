@@ -9,7 +9,7 @@ private struct Choice {
 }
 
 private let goalChoices = [
-    Choice(icon: "briefcase.fill", tint: Palette.indigo, title: "Найти первую работу"),
+    Choice(icon: "briefcase.fill", tint: Palette.accent, title: "Найти первую работу"),
     Choice(icon: "arrow.left.arrow.right", tint: Palette.sky, title: "Сменить профессию"),
     Choice(icon: "graduationcap.fill", tint: Palette.mint, title: "Для учёбы"),
     Choice(icon: "heart.fill", tint: Palette.coral, title: "Для себя"),
@@ -18,7 +18,7 @@ private let goalChoices = [
 private let minuteChoices: [(Int, Choice)] = [
     (15, Choice(icon: "cup.and.saucer.fill", tint: Palette.mint, title: "15 минут", subtitle: "Спокойный темп")),
     (20, Choice(icon: "timer", tint: Palette.sky, title: "20 минут", subtitle: "Оптимально")),
-    (30, Choice(icon: "dumbbell.fill", tint: Palette.indigo, title: "30 минут", subtitle: "Серьёзно")),
+    (30, Choice(icon: "dumbbell.fill", tint: Palette.accent, title: "30 минут", subtitle: "Серьёзно")),
     (40, Choice(icon: "bolt.fill", tint: Palette.amber, title: "40 минут", subtitle: "Интенсивно")),
 ]
 
@@ -64,7 +64,7 @@ struct OnboardingView: View {
                         .transition(.asymmetric(insertion: .opacity.combined(with: .offset(x: 24)), removal: .opacity))
                     if let error = vm.error {
                         Text(error).font(.bodyMedium).foregroundStyle(Palette.coral)
-                        Button("Повторить") { vm.load() }.font(.labelLarge).foregroundStyle(Palette.indigo)
+                        Button("Повторить") { vm.load() }.font(.labelLarge).foregroundStyle(Palette.accent)
                     }
                     if canCancel && step == steps - 1 {
                         Text("Новый план заменит текущий: прогресс начнётся заново.")
@@ -152,7 +152,7 @@ struct OnboardingView: View {
                 Question(title: "Твой уровень", subtitle: "Подберём темы под тебя")
                 OptionCard(icon: "safari.fill", tint: Palette.mint, title: "Я новичок", subtitle: "Начнём с самых основ",
                            selected: level == .beginner) { level = .beginner }
-                OptionCard(icon: "paperplane.fill", tint: Palette.indigo, title: "Знаю основы", subtitle: "Пропустим базовые темы",
+                OptionCard(icon: "paperplane.fill", tint: Palette.accent, title: "Знаю основы", subtitle: "Пропустим базовые темы",
                            selected: level == .continuing) { level = .continuing }
             case quizStep:
                 if quiz.index == 0 || quiz.unavailable {
@@ -191,14 +191,14 @@ struct OnboardingView: View {
                         Button { days = d } label: {
                             Text("\(d)")
                                 .font(.titleLarge)
-                                .foregroundStyle(selected ? .white : Palette.ink)
+                                .foregroundStyle(selected ? Palette.onAccent : Palette.ink)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 52)
-                                .background(selected ? Palette.indigo : Palette.surface,
+                                .background(selected ? Palette.accent : Palette.surface,
                                             in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .strokeBorder(selected ? Palette.indigo : Palette.line)
+                                        .strokeBorder(selected ? Palette.accent : Palette.line)
                                 }
                         }
                         .buttonStyle(.pressable)
@@ -235,17 +235,17 @@ private struct OptionCard: View {
         Button(action: action) {
             SoftCard(selected: selected) {
                 HStack(spacing: 14) {
-                    IconTile(icon: icon, tint: selected ? .white : tint, background: selected ? Palette.indigo : tint.opacity(0.12))
+                    IconTile(icon: icon, tint: selected ? Palette.onAccent : tint, background: selected ? Palette.accent : tint.opacity(0.12))
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title).font(.titleMedium).foregroundStyle(Palette.ink)
                         if let subtitle { Text(subtitle).font(.bodyMedium).foregroundStyle(Palette.inkSoft) }
                     }
                     Spacer(minLength: 0)
                     ZStack {
-                        Circle().strokeBorder(selected ? Palette.indigo : Palette.line, lineWidth: 2)
+                        Circle().strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: 2)
                         if selected {
-                            Circle().fill(Palette.indigo)
-                            Circle().fill(.white).frame(width: 8, height: 8)
+                            Circle().fill(Palette.accent)
+                            Circle().fill(Palette.onAccent).frame(width: 8, height: 8)
                         }
                     }
                     .frame(width: 22, height: 22)

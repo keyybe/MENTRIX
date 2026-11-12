@@ -13,7 +13,7 @@ private func dayWord(_ n: Int) -> String { (2...4).contains(n) ? "дня" : "д�
 
 // Какая настройка сейчас редактируется
 private enum ProfileEdit: Identifiable {
-    case goal, minutes, days, reminderTime
+    case goal, minutes, days, reminderTime, theme
     var id: Self { self }
 }
 
@@ -23,6 +23,7 @@ struct ProfileView: View {
     let onEditProfile: () -> Void
 
     @State private var editing: ProfileEdit?
+    @AppStorage(AppTheme.storageKey) private var theme = AppTheme.dark
     @State private var confirmDelete = false
     @State private var denied = false
 
@@ -37,7 +38,7 @@ struct ProfileView: View {
                     HStack(spacing: 10) {
                         StatTile(icon: "flame.fill", tint: Palette.amber, value: "\(p.streak)", label: "дней подряд")
                         StatTile(icon: "checkmark.seal.fill", tint: Palette.mint, value: "\(p.doneMissions)", label: "уроков")
-                        StatTile(icon: "chart.line.uptrend.xyaxis", tint: Palette.indigo,
+                        StatTile(icon: "chart.line.uptrend.xyaxis", tint: Palette.accent,
                                  value: "\(p.totalMissions == 0 ? 0 : p.doneMissions * 100 / p.totalMissions)%", label: "плана")
                     }
                 }
@@ -52,7 +53,7 @@ struct ProfileView: View {
                         SettingRow(icon: "timer", tint: Palette.mint, title: "Время в день", value: "\(plan.minutesPerDay) мин",
                                    enabled: !busy) { editing = .minutes }
                         RowDivider()
-                        SettingRow(icon: "calendar", tint: Palette.indigo, title: "Дней в неделю", value: "\(plan.daysPerWeek)",
+                        SettingRow(icon: "calendar", tint: Palette.accent, title: "Дней в неделю", value: "\(plan.daysPerWeek)",
                                    enabled: !busy) { editing = .days }
                         if let gaps = vm.progress?.gaps, !gaps.isEmpty {
                             RowDivider()
@@ -62,13 +63,19 @@ struct ProfileView: View {
                     }
                 }
 
+                Section(title: "Оформление") {
+                    SettingRow(icon: "circle.lefthalf.filled", tint: Palette.accent, title: "Тема", value: theme.title) {
+                        editing = .theme
+                    }
+                }
+
                 Section(title: "Уведомления") {
                     SettingRow(icon: "bell.fill", tint: Palette.amber, title: "Напоминание о занятии",
                                value: vm.reminderMinutes != nil ? "Каждый день" : "Выключено",
                                trailing: AnyView(
                                    Toggle("", isOn: Binding(get: { vm.reminderMinutes != nil }, set: toggleReminder))
                                        .labelsHidden()
-                                       .tint(Palette.indigo)
+                                       .tint(Palette.accent)
                                )) { toggleReminder(vm.reminderMinutes == nil) }
                     if let minutes = vm.reminderMinutes {
                         RowDivider()
@@ -113,7 +120,7 @@ struct ProfileView: View {
             Button(action: onEditProfile) {
                 UserAvatar(name: vm.userName, file: vm.avatarFile, size: 104)
                     .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: "camera.fill").font(.system(size: 14)).foregroundStyle(Palette.indigo)
+                        Image(systemName: "camera.fill").font(.system(size: 14)).foregroundStyle(Palette.accent)
                             .frame(width: 34, height: 34)
                             .background(Palette.surface, in: Circle())
                             .overlay { Circle().strokeBorder(Palette.background, lineWidth: 2) }
@@ -161,6 +168,12 @@ struct ProfileView: View {
             OptionsSheet(title: "Дней в неделю", options: dayOptions, selected: plan?.daysPerWeek ?? 5,
                          label: { "\($0) \(dayWord($0)) в неделю" }) { save(days: $0); editing = nil }
                 .presentationDetents([.medium])
+        case .theme:
+            OptionsSheet(title: "Тема", options: AppTheme.allCases, selected: theme, label: \.title) {
+                theme = $0
+                editing = nil
+            }
+            .presentationDetents([.height(300)])
         case .reminderTime:
             ReminderTimeSheet(current: vm.reminderMinutes ?? reminderDefault) { vm.setReminder($0); editing = nil }
                 .presentationDetents([.height(360)])
@@ -284,13 +297,13 @@ private struct OptionsSheet<T: Hashable>: View {
                     if isSelected { dismiss() } else { onPick(option) }
                 } label: {
                     HStack {
-                        Text(label(option)).font(.bodyLarge).foregroundStyle(isSelected ? Palette.indigo : Palette.ink)
+                        Text(label(option)).font(.bodyLarge).foregroundStyle(isSelected ? Palette.accent : Palette.ink)
                         Spacer()
-                        if isSelected { Image(systemName: "checkmark").foregroundStyle(Palette.indigo) }
+                        if isSelected { Image(systemName: "checkmark").foregroundStyle(Palette.accent) }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
-                    .background(isSelected ? Palette.indigoSoft : .clear, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(isSelected ? Palette.accentSoft : .clear, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
                 .buttonStyle(.pressable)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
