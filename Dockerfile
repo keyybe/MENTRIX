@@ -6,10 +6,13 @@ RUN swift package resolve
 COPY server/Sources ./Sources
 # тесты в образ не попадают, но без папки SwiftPM не разберёт тестовый таргет из Package.swift
 COPY server/Tests ./Tests
+# ресурсы (sources.json) лежат рядом с бинарником: в старых версиях SwiftPM – *.resources, в новых – *.bundle
 RUN swift build -c release --product mentor-server --static-swift-stdlib \
+    && BIN="$(swift build -c release --show-bin-path)" \
     && mkdir /app \
-    && cp "$(swift build -c release --show-bin-path)/mentor-server" /app/ \
-    && cp -R "$(swift build -c release --show-bin-path)"/*.resources /app/
+    && cp "$BIN/mentor-server" /app/ \
+    && for d in "$BIN"/*.resources "$BIN"/*.bundle; do if [ -e "$d" ]; then cp -R "$d" /app/; fi; done \
+    && ls /app | grep -q "^MentorServer_MentorServer\."
 
 FROM ubuntu:noble
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates libcurl4 libxml2 tzdata \
