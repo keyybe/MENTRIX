@@ -73,7 +73,8 @@ struct ProfileView: View {
                     SettingRow(icon: "bell.fill", tint: Palette.amber, title: "Напоминание о занятии",
                                value: vm.reminderMinutes != nil ? "Каждый день" : "Выключено",
                                trailing: AnyView(
-                                   Toggle("", isOn: Binding(get: { vm.reminderMinutes != nil }, set: toggleReminder))
+                                   // замыкание, а не ссылка на метод: на ссылке компилятор Xcode 26 падает
+                                   Toggle("", isOn: Binding(get: { vm.reminderMinutes != nil }, set: { toggleReminder($0) }))
                                        .labelsHidden()
                                        .tint(Palette.accent)
                                )) { toggleReminder(vm.reminderMinutes == nil) }
