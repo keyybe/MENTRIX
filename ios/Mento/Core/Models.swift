@@ -1,6 +1,6 @@
 import Foundation
 
-// DTO сервера. Названия полей и значения enum совпадают с shared/Models.kt.
+// DTO сервера. Названия полей и значения enum совпадают с server/Sources/MentorServer/Models.swift.
 
 nonisolated enum ItArea: String, Codable, CaseIterable, Sendable, Identifiable {
     case frontend = "FRONTEND"

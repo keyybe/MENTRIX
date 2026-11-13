@@ -242,7 +242,7 @@ struct MentorViewModelTests {
     }
 
     @Test func decodesServerJsonWithoutDefaultFields() throws {
-        // kotlinx.serialization не пишет поля со значениями по умолчанию
+        // сервер старой версии может не прислать новые поля – приложение берёт значения по умолчанию
         let json = #"{"mission":{"id":"m","week":1,"day":2,"title":"t","topic":"x","material":{"title":"a","url":"b"},"task":"q","minutes":15,"status":"TODO"},"message":"ok"}"#
         let decoded = try JSONDecoder().decode(TodayDto.self, from: Data(json.utf8))
         #expect(decoded.mission?.review == false)

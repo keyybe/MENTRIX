@@ -201,7 +201,7 @@ public final class InMemoryUserStore: UserStore {
     }
 }
 
-// Хранилище в PostgreSQL. Таблицы те же, что были у сервера на Kotlin, поэтому старые данные читаются как есть.
+// Хранилище в PostgreSQL. Состояние пользователя – JSON-документ, новые поля получают значения по умолчанию.
 // Клиенту нужен запущенный run() – его запускает точка входа сервера (или тест).
 public final class PostgresUserStore: UserStore {
     public let client: PostgresClient

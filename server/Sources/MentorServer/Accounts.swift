@@ -5,7 +5,7 @@ import Synchronization
 import Vapor
 
 // Пароли храним только как PBKDF2-SHA256 с солью: даже при утечке базы их нельзя прочитать.
-// Формат строки: pbkdf2_sha256$итерации$соль$хеш (соль и хеш в Base64) – такой же был у сервера на Kotlin.
+// Формат строки: pbkdf2_sha256$итерации$соль$хеш (соль и хеш в Base64). Не меняй его: по нему проверяются сохранённые пароли.
 public enum Passwords {
     static let iterations = 210_000
     static let keyBytes = 32

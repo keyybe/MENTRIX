@@ -110,7 +110,7 @@ public func configure(
 
 extension StatsDto: Content {}
 
-// Любая ошибка превращается в ответ { "error": "текст" } – так же отвечал сервер на Kotlin
+// Любая ошибка превращается в ответ { "error": "текст" }: приложение показывает этот текст человеку
 struct APIErrorMiddleware: AsyncMiddleware {
     func respond(to request: Request, chainingTo next: any AsyncResponder) async throws -> Response {
         do {

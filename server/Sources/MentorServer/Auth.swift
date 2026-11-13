@@ -20,7 +20,7 @@ public struct AuthConfig: Sendable {
 }
 
 // Собственные токены сервера: приложение получает их после входа и шлёт в Authorization: Bearer.
-// Издатель, аудитория и HS256 те же, что у сервера на Kotlin, поэтому выданные раньше токены остаются в силе.
+// Издатель, аудитория и HS256 не меняй: иначе уже выданные токены перестанут действовать.
 public struct TokenIssuer: Sendable {
     static let issuer = "ai-mentor"
     static let audience = "ai-mentor-app"
