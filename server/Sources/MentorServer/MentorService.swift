@@ -318,7 +318,7 @@ public final class MentorService: Sendable {
     }
 
     public func today(_ userId: String) async throws -> TodayDto {
-        let dto = try await withUser(userId) { st -> TodayDto in
+        let result = try await withUser(userId) { st -> TodayDto in
             let now = today()
             let paused = st.lastActive.days(until: now)
             let rebuilt = paused >= Self.pauseDays && rebuildAfterPause(&st, now)
@@ -347,7 +347,7 @@ public final class MentorService: Sendable {
         }
         try await event(userId, .open)
         await pregenerate(userId)
-        return dto
+        return result
     }
 
     public func answer(_ userId: String, _ req: AnswerRequest) async throws -> EvaluationDto {

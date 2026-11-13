@@ -15,7 +15,7 @@ jobs:
     name: Сервер – сборка и тесты
     runs-on: ubuntu-latest
     # тот же образ, что и в Dockerfile, чтобы CI собирал так же, как прод
-    container: swift:6.1-noble
+    container: swift:6.4-noble
     services:
       postgres:
         image: postgres:17
@@ -38,8 +38,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: server/.build
-          key: swift-${{ runner.os }}-6.1-${{ hashFiles('server/Package.resolved') }}
-          restore-keys: swift-${{ runner.os }}-6.1-
+          key: swift-${{ runner.os }}-6.4-${{ hashFiles('server/Package.resolved') }}
+          restore-keys: swift-${{ runner.os }}-6.4-
 
       - name: Сборка
         run: swift build --build-tests
@@ -72,8 +72,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Версия Xcode
-        run: xcodebuild -version
+      # Xcode по умолчанию на раннере бывает старше нужного (26.x падает на этом проекте) – берём самый новый
+      - name: Самый новый Xcode
+        run: |
+          ls -d /Applications/Xcode*.app
+          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
 
       - name: Тесты на симуляторе
         run: |

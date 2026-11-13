@@ -1,9 +1,11 @@
 # Сервер ИИ-ментора (Swift + Vapor). Сборка: docker build -t ai-mentor .
-FROM swift:6.1-noble AS build
+FROM swift:6.4-noble AS build
 WORKDIR /src
 COPY server/Package.swift server/Package.resolved ./
 RUN swift package resolve
 COPY server/Sources ./Sources
+# тесты в образ не попадают, но без папки SwiftPM не разберёт тестовый таргет из Package.swift
+COPY server/Tests ./Tests
 RUN swift build -c release --product mentor-server --static-swift-stdlib \
     && mkdir /app \
     && cp "$(swift build -c release --show-bin-path)/mentor-server" /app/ \
