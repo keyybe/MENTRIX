@@ -91,7 +91,13 @@ jobs:
             -scheme Mento \
             -destination "id=$DEVICE_ID" \
             CODE_SIGNING_ALLOWED=NO \
-            > xcodebuild.log 2>&1 || { grep -E "error:|✘" xcodebuild.log | head -50; tail -50 xcodebuild.log; exit 1; }
+            > xcodebuild.log 2>&1 || {
+              grep -E "error:|✘" xcodebuild.log | head -50
+              # если упал сам компилятор – показать, на каком объявлении (артефакт с логом скачать не всегда удаётся)
+              grep -n -B2 -A25 -E "Stack dump|Please submit a bug report|While (evaluating|type-checking|emitting|SILGen)" xcodebuild.log | awk 'length($0) < 600' | head -150
+              tail -50 xcodebuild.log
+              exit 1
+            }
           grep -E "✔ Test run|\*\* TEST" xcodebuild.log
 
       - name: Лог сборки при ошибке
